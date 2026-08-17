@@ -1,0 +1,74 @@
+# ---- Credentials ----
+.env
+.env.*
+!.env.example
+
+# yahoofantasy / yahoo_oauth token files — written to the working directory by default
+.yahoofantasy
+oauth2.json
+token.json
+*.token
+private.json
+
+# Self-signed cert for the https://localhost:8000 OAuth redirect
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# Secrets that leak into the repo from ~/.config/tilastokeskus/
+secrets.*
+config/secrets*
+
+# ---- Raw API archive (gzipped dated payloads; contain manager names) ----
+raw/
+data/raw/
+data/spike/
+*.json.gz
+
+# ---- Postgres dumps / backups (migrations are *.sql and stay tracked) ----
+*.dump
+*.sql.gz
+backups/
+dumps/
+
+# ---- Python ----
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+build/
+dist/
+.eggs/
+
+# Tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+.hypothesis/
+.ipynb_checkpoints/
+
+# ---- Logs & runtime ----
+*.log
+logs/
+*.pid
+
+# ---- Editors / OS ----
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ---- Local agent config ----
+.claude/settings.local.json
