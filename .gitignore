@@ -70,5 +70,9 @@ logs/
 .DS_Store
 Thumbs.db
 
+# ---- Local design docs ----
+# Contains internal host addresses; this repo is public.
+tilastokeskus-brief.md
+
 # ---- Local agent config ----
 .claude/settings.local.json
