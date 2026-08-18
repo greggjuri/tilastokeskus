@@ -133,6 +133,8 @@ Begins the moment the token exists.
 - [ ] Confirm real key formats and that keys are stored verbatim, game_key prefix intact (D-11)
 - [ ] **Record the real `game_key` integers** and correct the illustrative examples in
       `DECISIONS.md`, `001_initial.sql`, and the brief. `461`/`449` are guesses (D-11)
+- [ ] Capture a real throttle response if one occurs — confirm it is status 999 and note whether
+      Yahoo sends `Retry-After`. Both are assumed, not observed (D-42, D-43)
 - [ ] Confirm `current_week` is present on the league resource and note whether it differs
       between the eight leagues (D-24a)
 
@@ -144,13 +146,17 @@ Build in dependency order; each table's foreign keys require the one before it.
 
 - [ ] Raw response archiving — gzipped, dated, written before parsing (D-20)
 - [ ] `collector_runs` logging wrapper around every run, success or failure (D-22)
-- [ ] Rate limiting with exponential backoff on 999 and 429, plus a conservative default
-      inter-request delay (D-21, D-21a)
-- [ ] **Unit-test the backoff against simulated 999 / 429 responses.** This needs no token and can
-      be written before access is granted — do not wait for a real throttle to discover a bug in a
-      delay calculation (D-21a)
-- [ ] Log every retry with its response code and applied delay — a backoff that silently works
-      looks identical to one that never fired (D-21a)
+- [x] Rate limiting with bounded exponential backoff on 999 and 429, two ceilings, jitter, and a
+      conservative default inter-request delay (D-21, D-21a, D-42)
+- [x] **Unit-tested against simulated 999 / 429 responses**, asserting the exact sleep durations
+      rather than only the retry count — 37 tests, no token required (D-42)
+- [x] `RetryLog` records every wait with its status and applied delay (D-21a)
+- [x] Confirmed `yahoofantasy` 1.4.9 does no retrying of its own, so no layering conflict (D-43)
+- [ ] Wire `call_with_backoff` into the real request path once the token exists. This needs the
+      response *status*, which `yahoofantasy`'s `make_request` discards — decide then whether to
+      bypass it or keep the library for OAuth only (D-43, D-33)
+- [ ] Tune `request_interval` and the ceilings against observed behaviour; the shipped defaults
+      are deliberately conservative guesses (D-21)
 - [ ] Transparent token refresh that fails loudly on revocation (D-29)
 - [ ] Collect `leagues` → `teams` → `players` → `draft_picks` → `rosters`, all idempotent
       upserts (D-19)

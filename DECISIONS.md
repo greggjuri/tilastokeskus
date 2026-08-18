@@ -258,6 +258,61 @@ The point is not that a season of requests is objectively large. It is that the 
 wrong is asymmetric: unremarkable if it works, and disproportionate if it results in throttling or
 review against access that was granted on the basis of modest personal use.
 
+### D-42 — Backoff is bounded by two ceilings, and the delays themselves are tested · Active
+
+Exponential backoff with no ceiling turns a remote outage into a process that sleeps for hours
+holding a systemd unit open. Two independent bounds, both configurable on `BackoffPolicy`, because
+they fail differently:
+
+- **`max_attempts`** (default 5) bounds a fast-failing endpoint.
+- **`max_cumulative_delay`** (default 300s) bounds a slow one that would otherwise pin the run
+  open regardless of attempt count.
+
+Whichever is reached first raises `RateLimitExhausted`, loudly, per D-38. The budget is checked
+*before* sleeping rather than after — sleeping a truncated amount and then failing anyway wastes
+the wait and muddies the retry log. The exception carries both the attempt count and the seconds
+actually slept, because hitting the attempt ceiling in 30s is a different problem from grinding
+through the whole delay budget.
+
+With shipped defaults the worst case is 5 attempts and ~36s of sleep including jitter — well inside
+the 30-minute `TimeoutStartSec` on the unit.
+
+**The delay arithmetic is asserted directly, not inferred from behaviour.** `sleep` and
+`jitter_source` are injectable, so tests check the exact sequence `[2.0, 4.0, 8.0, 16.0]` rather
+than merely counting retries. A backoff that retries the right number of times but computes 0.5s
+where it meant 30s passes a behavioural test and fails in the field; only asserting on durations
+catches it.
+
+Jitter (±20% by default) exists so eight leagues do not retry in lockstep, and is disabled in tests
+to keep delays exact. `Retry-After` is honoured when present but never shortens the computed delay —
+a `Retry-After: 0` during throttling would otherwise become a hot loop.
+
+### D-43 — Ours is the only retry layer, and it must inspect status codes · Active
+
+Confirmed against `yahoofantasy` 1.4.9: the request path (`api/fetch.py::make_request`) is a bare
+`requests.get` followed by `raise_for_status()`. No `Session`, no `HTTPAdapter`, no urllib3 `Retry`,
+and `requests` defaults to `max_retries=0`. There is no retrying anywhere in the library core, so
+layering ours on top produces no multiplied delays.
+
+Two consequences:
+
+- **Do not use the `yahoofantasy dump` CLI command.** It contains its own hardcoded `sleep(120)`
+  retry loop. It is the one place in the library that retries, and using it would reintroduce
+  exactly the layering this entry rules out.
+- **Retries cannot key off exceptions.** Yahoo's throttle response is status **999**, and
+  `raise_for_status()` only raises for 400–599. A 999 therefore arrives as an ordinary successful
+  response carrying a throttle page as its body, and an exception-driven retry layer would never
+  see it. `call_with_backoff` takes an operation returning `(status, payload)` for this reason.
+
+This is also why the collector cannot simply call `make_request` and wrap it: that function returns
+`resp.text` and discards the status entirely. The request layer needs access to the response object.
+Whether that means bypassing `make_request` while still using `yahoofantasy` for OAuth, or dropping
+the library for data calls altogether, is settled in phase 3 once real responses can be observed
+(D-33).
+
+Non-retryable by design: 401 and 403 fail immediately rather than being retried into looking like
+a throttle. A revoked refresh token must surface at once (D-29).
+
 ### D-22 — Log every run to `collector_runs`, success or failure · Active
 
 This table is what the Prometheus exporter reads and what reveals a broken pipeline before a stale
