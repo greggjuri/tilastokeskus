@@ -42,7 +42,7 @@ Redraft only — rosters reset each season, so no keeper or dynasty chains are m
 | Visualization | Grafana | Postgres data source, native, no plugin |
 | Metrics | Prometheus | narrow exporter for collector health only |
 | Scheduling | systemd timers | logs to journald, simpler than cron here |
-| Host | `debian-dev` | Debian trixie |
+| Host | self-hosted | Debian trixie, LAN only |
 
 **Why Postgres rather than Prometheus for the bulk of the data:** Prometheus is built for numeric
 time series with low-cardinality labels. Fantasy data is full of entities and strings — player
