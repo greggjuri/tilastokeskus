@@ -287,9 +287,11 @@ partial schema.
 
 Pre-alpha. Yahoo API access application submitted and under review.
 
-Working: package scaffolding, CLI argument handling, schema migration, systemd units. The
-collectors themselves are stubs — they need real API payloads to be written against, and every one
-of them fails with an explicit message rather than returning empty data.
+Working: package scaffolding, CLI argument handling, systemd timers, and a live PostgreSQL
+database with the schema applied and the read-only Grafana role verified.
+
+The collectors themselves are stubs — they need real API payloads to be written against, and every
+one of them fails with an explicit message rather than returning empty data.
 
 Season timing note: as of mid-August 2026, four of eight drafts are complete and the regular season
 has not started. Draft results and rosters are available now; matchup and scoring data begins

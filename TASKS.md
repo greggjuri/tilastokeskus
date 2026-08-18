@@ -7,8 +7,9 @@ Rationale for anything non-obvious lives in `DECISIONS.md`, referenced as D-nn.
 
 Last updated 2026-08-17.
 
-**Now:** application submitted and waiting. Phase 2 is complete except the database, which is
-blocked on an interactive sudo password.
+**Now:** application submitted and waiting. **Phase 2 is complete** — database live, schema
+migrated, read-only role verified, timers enabled with lingering. Everything remaining needs
+the Yahoo token, except the rate-limiter backoff and its tests, which do not.
 
 ---
 
@@ -60,14 +61,16 @@ Ordered so that each step is testable when the one before it is done.
 Verified: argument handling, mutually exclusive `--all` / `--league`, week-range rejection,
 and that the Postgres connection error names the target without leaking the password.
 
-### Schema · Written, not yet applied
+### Schema · Applied
 
 - [x] `tilastokeskus/migrations/001_initial.sql` — all ten tables, indexes named explicitly
       (D-11 … D-15, D-35)
 - [x] `tilasto migrate` — applies in filename order, tracks versions, one transaction each
-- [ ] Apply against the real database and confirm every foreign key and index creates cleanly
+- [x] Applied against the real database; every foreign key and index created cleanly
 
-Treat the migration as provisional until the spike confirms the payload shapes (D-33).
+Treat the migration as provisional until the spike confirms the payload shapes (D-33). Because
+the tables are empty, revising `001_initial.sql` and recreating the database is still cheaper
+than writing a `002` migration — that stops being true the moment real data lands.
 
 ### Scheduling units · Complete
 
@@ -82,30 +85,36 @@ the collector alone.
 
 - [ ] `loginctl enable-linger` so timers run without an active login — needs sudo
 
-### Database · Blocked on sudo
+### Database · Complete
 
 **One privileged session, not a handoff partway through** (D-41). A fresh cluster has only the
 `postgres` role, so role creation and `createdb` need `sudo -u postgres` just as much as the
 install does. The full command block is in the README under Setup → Database.
 
-- [ ] `sudo apt install postgresql` (D-06)
-- [ ] Create roles `tilasto_app` and `tilasto_ro` with real passwords (D-10)
-- [ ] `createdb -O tilasto_app tilastokeskus` — app role owns the database, which is what lets it
+- [x] `sudo apt install postgresql` (D-06)
+- [x] Create roles `tilasto_app` and `tilasto_ro` with real passwords (D-10)
+- [x] `createdb -O tilasto_app tilastokeskus` — app role owns the database, which is what lets it
       create tables under Postgres 15+ schema rules (D-41)
-- [ ] `GRANT CONNECT` / `GRANT USAGE`, then **`ALTER DEFAULT PRIVILEGES FOR ROLE tilasto_app`
-      before the first migration** — after it is too late for the ten tables already created (D-41)
-- [ ] Put the `tilasto_app` password in `.env`
+- [x] `GRANT CONNECT` / `GRANT USAGE`, then **`ALTER DEFAULT PRIVILEGES FOR ROLE tilasto_app`
+      before the first migration** (D-41)
+- [x] `tilasto_app` password in `.env`; TCP connection confirmed
+- [x] `sudo loginctl enable-linger` so user timers survive logout (D-34)
 
 Then, with no further sudo:
 
-- [ ] `tilasto migrate` as the ordinary user
-- [ ] Verify `tilasto_ro` can `SELECT` from all ten tables and **cannot** `INSERT` — this is what
-      proves the default privileges actually took (D-41)
+- [x] `tilasto migrate` — `001_initial` applied; re-running reports "schema is up to date"
+- [x] 10 schema tables plus `schema_migrations`, all owned by `tilasto_app`; 23 indexes,
+      15 foreign keys, all created cleanly
+- [x] `tilasto_ro` has SELECT on all 11 tables and no INSERT, UPDATE, or DELETE on any;
+      `CONNECT` and schema `USAGE` yes, schema `CREATE` no
+- [x] **Default privileges proven against a future table**, not just the existing ones: a table
+      created by `tilasto_app` after the fact was readable by `tilasto_ro` immediately and not
+      writable. This is the check that distinguishes working default privileges from a one-off
+      `GRANT SELECT ON ALL TABLES` that would leave the next migration ungranted (D-41)
 
-Separately, still requiring root, and only needed once Grafana connects:
+Still requiring root, not needed until Grafana connects in phase 6:
 
 - [ ] `listen_addresses` and a `pg_hba.conf` entry scoped to the LAN, not `0.0.0.0/0` (D-04)
-- [ ] `sudo loginctl enable-linger` so user timers survive logout (D-34)
 
 ---
 
