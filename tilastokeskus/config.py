@@ -52,6 +52,7 @@ class Settings:
     yahoo_client_id: str
     yahoo_client_secret: str
     yahoo_redirect_uri: str
+    yahoo_refresh_token: str
 
     @property
     def conninfo(self) -> str:
@@ -85,4 +86,5 @@ def load_settings(season: int | None = None) -> Settings:
         yahoo_client_id=os.getenv("YAHOO_CLIENT_ID", ""),
         yahoo_client_secret=os.getenv("YAHOO_CLIENT_SECRET", ""),
         yahoo_redirect_uri=os.getenv("YAHOO_REDIRECT_URI", "https://localhost:8000"),
+        yahoo_refresh_token=os.getenv("YAHOO_REFRESH_TOKEN", ""),
     )

@@ -146,20 +146,31 @@ Build in dependency order; each table's foreign keys require the one before it.
 
 - [ ] Raw response archiving — gzipped, dated, written before parsing (D-20)
 - [ ] `collector_runs` logging wrapper around every run, success or failure (D-22)
-- [x] Rate limiting with bounded exponential backoff on 999 and 429, two ceilings, jitter, and a
-      conservative default inter-request delay (D-21, D-21a, D-42)
+- [x] Rate limiting with bounded exponential backoff on 999 and 429, two ceilings, and jitter
+      (D-21, D-21a, D-42)
+- [x] Conservative inter-request pacing, applied by `Pacer` and elapsed-aware so a slow request
+      counts toward the gap rather than adding to it (D-21a)
 - [x] **Unit-tested against simulated 999 / 429 responses**, asserting the exact sleep durations
-      rather than only the retry count — 37 tests, no token required (D-42)
+      rather than only the retry count — 71 tests, no token required (D-42)
+- [x] Contract tests alongside the arithmetic: return values on every non-happy path, rejection
+      of invalid policies, named bounds actually bounding (D-44)
 - [x] `RetryLog` records every wait with its status and applied delay (D-21a)
 - [x] Confirmed `yahoofantasy` 1.4.9 does no retrying of its own, so no layering conflict (D-43)
-- [ ] Wire `call_with_backoff` into the real request path once the token exists. This needs the
-      response *status*, which `yahoofantasy`'s `make_request` discards — decide then whether to
-      bypass it or keep the library for OAuth only (D-43, D-33)
+- [x] **Request path decided and built** — `YahooTransport` owns requests and token refresh;
+      `yahoofantasy` is kept for the `login` browser flow only. Every request goes through
+      `call_with_backoff` with pacing, so the limiter has a real call site (D-45)
+- [x] Transport tested contract-first against an injected session: token reuse, rotation,
+      early refresh, rejected refresh, 999 retried, 404 raised, pacing applied (D-44, D-45)
+- [ ] Exercise the transport against Yahoo itself. Everything above is verified against fakes;
+      nothing has yet proven correct against the real API
 - [ ] Tune `request_interval` and the ceilings against observed behaviour; the shipped defaults
       are deliberately conservative guesses (D-21)
 - [ ] Transparent token refresh that fails loudly on revocation (D-29)
 - [ ] Collect `leagues` → `teams` → `players` → `draft_picks` → `rosters`, all idempotent
       upserts (D-19)
+- [ ] Test each collector's **contract**, not only its parsing: what it returns on a malformed
+      payload, a missing field, an empty list; what inputs it refuses. Parsing logic wrapped in a
+      thin contract is exactly the shape that hid five defects in the backoff module (D-44)
 - [ ] Flag `teams.is_owned_by_me` — it drives dashboard filtering
 - [ ] Verify idempotency directly: run twice, confirm row counts are identical
 

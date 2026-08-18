@@ -313,6 +313,77 @@ the library for data calls altogether, is settled in phase 3 once real responses
 Non-retryable by design: 401 and 403 fail immediately rather than being retried into looking like
 a throttle. A revoked refresh token must surface at once (D-29).
 
+### D-44 — Test the contract, not only the computation · Active
+
+The first version of the backoff module shipped with 37 passing tests and five defects. The tests
+were thorough about the arithmetic — exact delay sequences, cap flattening, jitter band edges,
+cumulative bounds — and every defect they missed was at the boundary rather than inside it:
+
+| Defect | Boundary |
+|---|---|
+| A 401 returned its payload exactly like a 200 | what it returns |
+| `request_interval` was declared, documented, never applied | what it promises |
+| `max_attempts=0` raised `AssertionError: unreachable` | what it accepts |
+| Jitter applied after the cap, so `max_delay=60` slept 72s | what it guarantees |
+| `jitter > 1.0` produced a negative delay | what it accepts |
+
+One of these was actively enshrined by a test: `test_auth_failure_is_not_retried` asserted the
+correct retry behaviour and, incidentally, the wrong return value. A test can lock in a bug while
+appearing to prove correctness — so the fix was to rewrite it, not to add a second test beside it
+asserting the opposite.
+
+So, for every function worth testing at all, alongside "does it compute the right value":
+
+- **What does it return on each non-happy path?** An error that returns like a success is the
+  worst failure this project can have — it is D-38's silence in a different costume.
+- **What does it do with input it should refuse?** Validate at construction and raise, rather than
+  failing obscurely three frames later.
+- **Is every advertised setting actually read?** Dead config is a lie in the API surface, and it
+  reads as an implemented feature to everyone including the person who wrote it.
+- **Does a named bound actually bound?** `max_delay` did not.
+- **Are there any claims of impossibility?** `raise AssertionError("unreachable")` was reachable.
+  There is now a test asserting no such claim exists anywhere in the package.
+
+**Errors are raised, never returned as values.** Returning `(status, payload)` would push the check
+onto every call site, and one forgotten check reintroduces exactly the bug. Raising makes silence
+structurally impossible, which is what D-29 and D-38 are both really asking for.
+
+This matters most for what comes next. Phase 4's collectors have precisely the shape that hides
+these defects: a lot of parsing logic wrapped in a thin contract, where the parsing gets the
+attention and the contract gets assumed.
+
+### D-45 — Own the request path; keep `yahoofantasy` for the login flow only · Active
+
+D-43 left this open: `Context.make_request` performs the token refresh and then delegates to
+`api.fetch.make_request`, which returns `resp.text` and discards the status. Since Yahoo signals
+throttling with status 999, a transport that cannot see the status cannot be rate limited at all —
+so the library's request path cannot be wrapped, only replaced.
+
+The division of labour:
+
+- **`yahoofantasy login` stays.** The interactive browser flow with a local HTTPS server and a
+  self-signed certificate is genuinely awkward, and there is no reason to reimplement it. It writes
+  `.yahoofantasy` (a pickle in the working directory, already gitignored).
+- **Everything after that is ours.** Reading the refresh token, exchanging it for access tokens,
+  and issuing requests — so every response arrives with its status intact.
+
+`YahooTransport` reads the refresh token from `YAHOO_REFRESH_TOKEN` if set, falling back to the
+`.yahoofantasy` file. The refresh exchange is an ordinary OAuth2 `refresh_token` grant, so nothing
+here depends on a private attribute of the library and a library upgrade cannot silently change
+behaviour.
+
+Two details that are easy to get wrong and are therefore tested:
+
+- **Yahoo rotates the refresh token on every exchange.** Discarding the new one works exactly once
+  and then fails permanently, which would look like a revoked grant rather than a bug.
+- **Refresh happens 60s before expiry**, not at it. A token lapsing mid-request turns a working run
+  into a spurious auth failure.
+
+**This decision was overdue.** The limiter was built, reviewed for five defects, hardened, and
+tested to 100 tests while having no call site at all — none of which could demonstrate it worked,
+because nothing invoked it. Tests of an uncalled module measure intent, not behaviour. The rule
+worth keeping: a component gets wired to its caller as part of building it, not as a later phase.
+
 ### D-22 — Log every run to `collector_runs`, success or failure · Active
 
 This table is what the Prometheus exporter reads and what reveals a broken pipeline before a stale

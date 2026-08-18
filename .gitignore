@@ -75,4 +75,6 @@ Thumbs.db
 tilastokeskus-brief.md
 
 # ---- Local agent config ----
-.claude/settings.local.json
+# The trailing glob matters: atomic writes leave .tmp.<pid>.<hash> siblings that an
+# exact-match rule does not cover, and `git add -A` will happily stage them.
+.claude/settings.local.json*
