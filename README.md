@@ -22,9 +22,10 @@ Tracked per league:
 - Transactions — adds, drops, trades, waiver claims and FAAB bids
 - Player weekly scoring
 
-Roster and standings data is **snapshotted weekly and cannot be backfilled.** Yahoo does not expose
-historical rosters retroactively, so a missed collection run loses that week permanently. This is
-why the collector reports its own health (see [Monitoring](#monitoring)).
+Everything above is **keyed by week and retroactively fetchable.** Rosters, standings, matchups, and
+transactions can all be requested for a completed week, and prior seasons remain available for as
+long as Yahoo retains them for the account. A missed collection run is therefore a re-fetch, not a
+hole — see [Backfill](#backfill).
 
 ## Scope
 
@@ -107,11 +108,24 @@ version control — see [Security](#security).
 
 ```bash
 tilasto leagues                  # list discovered league keys
-tilasto collect --all            # full collection run
+tilasto collect --all            # full collection run, current week
 tilasto collect --league <key>   # single league
 tilasto collect --draft-only     # draft results, one-shot per season
 tilasto status                   # last run, row counts, staleness
 ```
+
+### Backfill
+
+Because every table is keyed by week and fetchable retroactively, catching up is a normal command
+rather than a recovery procedure:
+
+```bash
+tilasto collect --backfill --weeks 1-10        # completed weeks, all leagues
+tilasto collect --backfill --season 2025       # a prior season, if Yahoo still has it
+```
+
+Backfill uses the same idempotent upserts as a live run, so re-running over weeks already collected
+is safe and simply refreshes them.
 
 ### Scheduling
 
@@ -141,9 +155,10 @@ tilasto_team_rank{league,team}
 tilasto_team_points_for{league,team}
 ```
 
-The metric that matters most is `tilasto_collector_last_success_timestamp`. Because weekly roster
-snapshots cannot be backfilled, a silently broken collector is the one failure mode with permanent
-consequences. Alert on staleness, not just on error.
+The metric that matters most is `tilasto_collector_last_success_timestamp`. A collector that fails
+loudly is obvious; one that stops running is not, and a stale dashboard looks much like a quiet
+week in the data. Alert on staleness, not just on error. The consequence is recoverable — a
+backfill fixes it — but only once someone notices.
 
 Player-level data is deliberately absent from Prometheus. It lives in Postgres and is queried
 directly by Grafana.
