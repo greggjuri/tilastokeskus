@@ -1,0 +1,26 @@
+[Unit]
+Description=Tilastokeskus fantasy data collection
+Documentation=https://github.com/greggjuri/tilastokeskus
+# Do not start before the network is usable; the collector talks to Yahoo and to Postgres.
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/projects/tilastokeskus
+ExecStart=%h/projects/tilastokeskus/.venv/bin/tilasto collect --all
+
+# The collector is expected to fail loudly when auth breaks (D-29); journald keeps the detail.
+StandardOutput=journal
+StandardError=journal
+
+# A run that hangs on a throttled Yahoo endpoint should not block the next timer firing.
+TimeoutStartSec=30min
+
+# Modest hardening. This is a user unit with no need for privilege of any kind.
+# ProtectSystem=strict makes the whole hierarchy read-only, so the project directory has to
+# be granted back explicitly — it is where the raw JSON archive and any logs are written.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=%h/projects/tilastokeskus

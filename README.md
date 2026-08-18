@@ -86,16 +86,49 @@ transparently and fails loudly if the refresh token is revoked.
 
 ### 3. Database
 
+A fresh cluster has only the `postgres` role, so the whole bootstrap runs as `postgres` in one
+session — roles and database creation included.
+
 ```bash
 sudo apt install postgresql
-sudo -u postgres createdb tilastokeskus
-sudo -u postgres psql -c "CREATE ROLE tilasto_app LOGIN PASSWORD '...';"
-sudo -u postgres psql -c "CREATE ROLE tilasto_ro  LOGIN PASSWORD '...';"
+
+# Roles. Substitute real passwords.
+sudo -u postgres psql -v ON_ERROR_STOP=1 <<'SQL'
+CREATE ROLE tilasto_app LOGIN PASSWORD 'CHANGE_ME_APP';
+CREATE ROLE tilasto_ro  LOGIN PASSWORD 'CHANGE_ME_RO';
+SQL
+
+# Database owned by the app role, so migrations create tables it owns.
+sudo -u postgres createdb -O tilasto_app tilastokeskus
+
+# Read-only wiring. This must run BEFORE the first migration.
+sudo -u postgres psql -v ON_ERROR_STOP=1 -d tilastokeskus <<'SQL'
+GRANT CONNECT ON DATABASE tilastokeskus TO tilasto_ro;
+GRANT USAGE ON SCHEMA public TO tilasto_ro;
+
+-- Applies to tables tilasto_app creates from now on — that is, every migration, forever.
+ALTER DEFAULT PRIVILEGES FOR ROLE tilasto_app IN SCHEMA public
+    GRANT SELECT ON TABLES TO tilasto_ro;
+
+-- Anything already present. None on a fresh cluster; harmless, and correct when re-run.
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO tilasto_ro;
+SQL
+```
+
+Then, as your ordinary user, with `PGPASSWORD` for `tilasto_app` set in `.env`:
+
+```bash
 tilasto migrate
 ```
 
 `tilasto_ro` is the read-only role Grafana connects with. Grafana should never hold write
 credentials to this database.
+
+**Do not skip the `ALTER DEFAULT PRIVILEGES` line.** Default privileges apply only to tables created
+after they are set, so running it after the migration leaves all ten tables invisible to
+`tilasto_ro`. The failure mode is nasty: a one-off `GRANT SELECT ON ALL TABLES` appears to fix it,
+and then every future migration adds a table with no grant, blanking individual Grafana panels
+without any error.
 
 ### 4. Configuration
 
@@ -120,21 +153,45 @@ Because every table is keyed by week and fetchable retroactively, catching up is
 rather than a recovery procedure:
 
 ```bash
-tilasto collect --backfill --weeks 1-10        # completed weeks, all leagues
-tilasto collect --backfill --season 2025       # a prior season, if Yahoo still has it
+tilasto collect --backfill --weeks 1-10 --dry-run   # show the plan, issue nothing
+tilasto collect --backfill --weeks 1-10             # completed weeks, all leagues
+tilasto collect --backfill --weeks 1-3 --league KEY # one league, a few weeks
+tilasto collect --backfill --season 2025            # a prior season, if Yahoo still has it
 ```
 
 Backfill uses the same idempotent upserts as a live run, so re-running over weeks already collected
 is safe and simply refreshes them.
 
+**Start small.** A backfill is the heaviest thing this tool does, Yahoo does not document its rate
+limit, and access is granted for personal use. Begin with one league and a few weeks, check that
+requests were paced and any throttling was handled, and widen from there — rather than opening with
+a full season.
+
+Season defaults to the current season and is never hardcoded; override it with `--season` on any
+command.
+
 ### Scheduling
 
-Two cadences, both as systemd timers:
+Two cadences, both as systemd **user** timers — the collector needs no privilege, so nothing in the
+scheduling path needs root:
 
 - **Hourly during game windows** — matchups, standings, live scoring
 - **Daily** — rosters, transactions, player metadata
 
+```bash
+cp systemd/tilastokeskus-collect.* ~/.config/systemd/user/
+systemctl --user daemon-reload
+systemctl --user enable --now tilastokeskus-collect.timer
+sudo loginctl enable-linger "$USER"   # so timers run without an active login
+```
+
 Draft data is fetched once per season and skipped thereafter.
+
+**Availability.** The collection host is a multi-boot desktop, not an always-on server, so it only
+collects while powered on and booted into Linux. `Persistent=true` fires a missed run at next boot
+rather than skipping to the next day, and anything still missed is recoverable by backfill. The
+exception is in-season hourly collection: final weekly numbers backfill fine, but intra-game live
+scoring cannot be reconstructed after the fact.
 
 All writes are idempotent upserts (`INSERT ... ON CONFLICT DO UPDATE`). Re-running a collection is
 always safe.
@@ -149,11 +206,16 @@ surfaces:
 ```
 tilasto_collector_last_success_timestamp
 tilasto_collector_last_run_status
-tilasto_team_wins{league,team}
-tilasto_team_losses{league,team}
-tilasto_team_rank{league,team}
-tilasto_team_points_for{league,team}
+tilasto_team_wins{league_key,team_key}
+tilasto_team_losses{league_key,team_key}
+tilasto_team_rank{league_key,team_key}
+tilasto_team_points_for{league_key,team_key}
 ```
+
+Labels are Yahoo keys, never display names. Managers rename teams mid-season, and a label value is
+part of a series' identity — a rename orphans the old series and starts a new one, breaking a
+rank-over-time graph in half. Keys are stable for a season; Grafana joins the display name from
+Postgres for presentation.
 
 The metric that matters most is `tilasto_collector_last_success_timestamp`. A collector that fails
 loudly is obvious; one that stops running is not, and a stale dashboard looks much like a quiet
@@ -207,9 +269,27 @@ own code is provided as-is, without warranty of any kind.
 
 ---
 
+## Development
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e '.[dev]'
+pytest
+ruff check tilastokeskus tests
+```
+
+Migrations are `.sql` files in `tilastokeskus/migrations/`, applied in filename order and recorded
+in a `schema_migrations` table. Each runs in its own transaction, so a failed migration leaves no
+partial schema.
+
 ## Status
 
-Pre-alpha. Yahoo API access application pending.
+Pre-alpha. Yahoo API access application submitted and under review.
+
+Working: package scaffolding, CLI argument handling, schema migration, systemd units. The
+collectors themselves are stubs — they need real API payloads to be written against, and every one
+of them fails with an explicit message rather than returning empty data.
 
 Season timing note: as of mid-August 2026, four of eight drafts are complete and the regular season
 has not started. Draft results and rosters are available now; matchup and scoring data begins

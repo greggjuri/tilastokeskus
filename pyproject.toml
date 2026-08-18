@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tilastokeskus"
+version = "0.1.0"
+description = "Fantasy football statistics pipeline for Yahoo NFL redraft leagues"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "psycopg[binary]>=3.2",
+    "python-dotenv>=1.0",
+    "yahoofantasy>=1.4",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.6"]
+
+[project.scripts]
+tilasto = "tilastokeskus.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["tilastokeskus*"]
+
+[tool.setuptools.package-data]
+tilastokeskus = ["migrations/*.sql"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"

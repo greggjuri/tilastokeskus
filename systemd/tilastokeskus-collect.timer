@@ -1,0 +1,20 @@
+[Unit]
+Description=Tilastokeskus daily collection
+Documentation=https://github.com/greggjuri/tilastokeskus
+
+[Timer]
+# Daily cadence: rosters, transactions, player metadata (D-24).
+# The hourly in-season game-window timer is a separate unit, added in phase 7.
+OnCalendar=daily
+
+# Spread the start so eight leagues are not all requested on the same second every day.
+RandomizedDelaySec=15min
+
+# The host is a triple-boot desktop, not a server (D-40). It is regularly powered off or
+# booted into another OS, so missed runs are normal rather than exceptional. Persistent=true
+# fires a missed run at next boot instead of skipping ahead to the following day, which is
+# what keeps an ordinary evening in Windows from becoming a gap in the data.
+Persistent=true
+
+[Install]
+WantedBy=timers.target
