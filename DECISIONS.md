@@ -4,10 +4,10 @@ A record of what was decided and why. Entries are append-only: when something is
 original stays and is marked superseded, because the reasoning that was wrong is usually more
 useful later than the conclusion that replaced it.
 
-Status values: **Active** · **Superseded** · **Open** (decided in principle, not yet validated
-against real data).
+Status values: **Active** · **Superseded** · **Open** (decided in principle, but not yet validated
+against real data or an answer that has been asked for and not received).
 
-Last updated 2026-08-17.
+Last updated 2026-09-01.
 
 ---
 
@@ -474,6 +474,91 @@ data.
 
 ---
 
+## The agreement
+
+Yahoo's API Access and Use Agreement has been signed. Its terms restrict public statements about
+itself, and this repository is public (D-30), so the terms and the reasoning they drive are
+recorded in `AGREEMENT.md`, which is **not committed** — the same pattern already used for the
+project brief. The entries below are stubs. They record that a constraint exists and what it
+blocks, which is what a reader of this repository needs in order to make sense of the code; they
+reproduce no term.
+
+`AGREEMENT.md` continues this file's numbering, so D-47 means the same thing in both.
+
+### D-46 — The agreement is signed and governs everything above · Active
+
+Constraint recorded in `AGREEMENT.md`, not committed. Where a term and a decision in this file
+disagree, the term wins and the decision is what changes.
+
+### D-47 — An unresolved question with Yahoo blocks all collection of Yahoo data · **Open**
+
+Constraint recorded in `AGREEMENT.md`, not committed. A clarification has been requested and not
+yet answered.
+
+Consequence, in force now, and it is the widest constraint on this project: **nothing that writes
+Yahoo data is built until the answer arrives.** No collectors, no raw archive writes, no backfill.
+Not a subset of tables — anything that persists Yahoo Fantasy Information.
+
+Everything that touches no Yahoo data continues: the CLI, the migration runner and the schema, the
+systemd units, the transport, the rate limiter, and their tests. That is most of what remains
+buildable, and it was all written against fakes anyway.
+
+A "no" is a live possibility, not a formality being waited out. It is worth knowing that before
+building anything else on the assumption that collection eventually happens.
+
+### D-48 — A second unresolved question narrows what may be collected · **Open**
+
+Constraint recorded in `AGREEMENT.md`, not committed. Requested in the same clarification as D-47.
+
+Bears specifically on `player_weekly_stats` and `rosters`, whose scope cannot be settled until it
+is answered. Narrower than D-47 and with survivable answers; kept separate for that reason. D-48
+changes what gets collected, D-47 decides whether anything is.
+
+### D-49 — Yahoo data pasted into AI tools carries handling obligations · Active
+
+Constraint recorded in `AGREEMENT.md`, not committed. Relevant to the phase 3 spike, which compares
+real payloads against the schema. Working rule, which is good practice regardless: prefer redacted
+shapes over real values — field names, types, nesting, and cardinality answer the schema question,
+and player names and point totals do not.
+
+### D-50 — Ending API access requires a full deletion, and nothing implements one · Active
+
+Constraint recorded in `AGREEMENT.md`, not committed, including the list of what a purge must
+cover. `tilasto purge` does not exist; until it does the procedure is manual and documented.
+
+It is the one piece of agreement-driven work **not** blocked by D-47 — it deletes Yahoo data rather
+than writing it — and a literal answer to D-47 would make it the first thing needed.
+
+### D-51 — A security breach carries a short, externally-set notification deadline · Active
+
+Constraint recorded in `AGREEMENT.md`, not committed, with the deadline and the address, so that
+neither has to be looked up at the worst possible moment. Bias toward reporting: a leaked token, a
+credential committed by accident, or unauthorized access to the host or database all qualify.
+D-28 exists to make this unlikely; it does not make it impossible.
+
+### D-52 — Agreement terms are not committed to this repository · Active
+
+Constraint recorded in `AGREEMENT.md`, not committed — which is the decision this entry describes.
+
+The reasoning was first written into this file, which is public, and that was itself the problem it
+was describing. Gitignoring `DECISIONS.md` wholesale was rejected: it is what makes the project
+legible, and hiding it to protect one section costs more than it saves. Splitting the material out
+and leaving stubs is the brief's pattern (D-30) and keeps both properties.
+
+What a committed document may say: that a constraint exists, that it is recorded in `AGREEMENT.md`,
+what it blocks, and that an answer is outstanding. It may also carry the milestone dates of the
+access process itself — applied, approved, signed, awaiting countersignature — which describe a
+process rather than a term, and without which the project status is unreadable. What it may not
+say: any clause text, clause number, territory, deadline, retention window, or notification
+address. `TASKS.md` follows the same rule.
+
+Pre-existing passages were checked on 2026-09-01 against this rule. D-25, D-26, and D-31, and their
+counterparts in the README, describe the *access application* and the public attribution
+requirement rather than the agreement, and they stay. The check is recorded in full in
+`AGREEMENT.md`.
+
+---
+
 ## Repository
 
 ### D-30 — The GitHub repository is public; the brief is not committed · Active
@@ -635,6 +720,10 @@ for development. No ORM: the schema is built on natural keys and upserts written
 ---
 
 ## Open
+
+Two further open items, D-47 and D-48, are filed under **The agreement** rather than here, because
+they are unanswered questions put to Yahoo rather than unvalidated design guesses. D-47 blocks all
+collection of Yahoo data and is by some distance the most consequential open item in this file.
 
 ### D-33 — Schema is unvalidated against real API responses · Open
 

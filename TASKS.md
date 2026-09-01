@@ -5,11 +5,24 @@ proceed without a token, and should be worked while phase 1 waits. Phases 3 onwa
 
 Rationale for anything non-obvious lives in `DECISIONS.md`, referenced as D-nn.
 
-Last updated 2026-08-17.
+Last updated 2026-09-01.
 
-**Now:** application submitted and waiting. **Phase 2 is complete** — database live, schema
-migrated, read-only role verified, timers enabled with lingering. Everything remaining needs
-the Yahoo token, except the rate-limiter backoff and its tests, which do not.
+**Now:** access approved and the agreement signed; waiting on countersignature and provisioning.
+**Phase 2 is complete** — database live, schema migrated, read-only role verified, timers enabled
+with lingering. Everything remaining needs the Yahoo token, except the rate-limiter backoff and its
+tests, which do not.
+
+**Blocked on Yahoo, separately from the token:** the API agreement is signed (D-46) and two
+questions about it have been put to Yahoo and not yet answered (D-47, D-48). Terms are recorded in
+`AGREEMENT.md`, which is not committed (D-52).
+
+Until D-47 is answered, **nothing that writes Yahoo data to disk is built** — no collectors, no raw
+archive, no backfill, no spike dumps. Not a subset of tables: anything that persists Yahoo data.
+Items below are marked *blocked (D-47)*. A "no" is a live possibility rather than a formality being
+waited out.
+
+What proceeds unaffected, because it touches no Yahoo data: the CLI, the migration runner and the
+schema, the systemd units, the transport and rate limiter and their tests, and the D-50 purge.
 
 ---
 
@@ -26,9 +39,16 @@ Committed and pushed. Remote holds `README.md`, `.gitignore`, `.env.example`.
 
 ---
 
-## Phase 1 — Yahoo API access · Submitted 2026-08-17, awaiting review
+## Phase 1 — Yahoo API access · Approved 2026-08-28; agreement signed 2026-09-01; awaiting countersignature and API provisioning
 
 This gates every task from phase 3 onward. It gates nothing in phase 2.
+
+- [x] Sign the API Access and Use Agreement; record its constraints in `AGREEMENT.md`, keep it
+      uncommitted, and leave stubs in `DECISIONS.md` (D-46, D-52)
+- [ ] **Get an answer to D-47 and D-48.** Clarification requested from Yahoo and outstanding. This
+      is the critical path for everything that writes data; nothing below unblocks without it
+- [ ] Write the deletion procedure — `tilasto purge`, or a documented manual one. Not blocked by
+      D-47, and the first thing needed if the answer to D-47 is no (D-50)
 
 - [x] Draft the use-case text: data required, storage, user count, no redistribution (D-26)
 - [x] Submit at <https://sports.yahoo.com/developer/access/>, answering as an individual (D-26)
@@ -118,15 +138,20 @@ Still requiring root, not needed until Grafana connects in phase 6:
 
 ---
 
-## Phase 3 — First contact with the API
+## Phase 3 — First contact with the API · **Mostly blocked (D-47)**
 
-Begins the moment the token exists.
+Begins the moment the token exists — but only the two items that persist nothing. The spike and
+everything downstream of it wait for D-47.
 
 - [ ] `yahoofantasy login`; accept the expected certificate warning (D-27)
 - [ ] Verify: list leagues for `nfl`, 2026 — eight league keys should return. If the 2026 game key
       is not live yet, try 2025 to confirm auth works, then return to 2026
-- [ ] **Read-only spike** — dump one league's draft, one roster, and one transaction list to raw
-      JSON. Do not write parsing code yet
+- [ ] ~~**Read-only spike** — dump one league's draft, one roster, and one transaction list to raw
+      JSON~~ — *blocked (D-47)*. Writing dumps to disk is exactly what is in question. Listing
+      leagues above is not: it persists nothing
+- [ ] When unblocked: do not write parsing code yet, and prefer redacted shapes over real values
+      when comparing payloads by hand — field names, types, nesting, and cardinality answer the
+      schema question and player names do not (D-49)
 - [ ] Compare observed payloads against the schema and record every discrepancy (D-33)
 - [ ] Revise `001_initial.sql` before it is treated as settled — `transactions.payload`,
       `player_weekly_stats.stats`, `eligible_positions`, `draft_type`, `scoring_type`
@@ -143,6 +168,10 @@ Begins the moment the token exists.
 ## Phase 4 — Collector
 
 Build in dependency order; each table's foreign keys require the one before it.
+
+**Everything unchecked in this phase is blocked by D-47.** The checked items — the limiter, the
+transport, their tests — are done and stay done; they persist nothing. What remains is the part
+that writes rows, and that waits.
 
 - [ ] Raw response archiving — gzipped, dated, written before parsing (D-20)
 - [ ] `collector_runs` logging wrapper around every run, success or failure (D-22)
@@ -166,8 +195,10 @@ Build in dependency order; each table's foreign keys require the one before it.
 - [ ] Tune `request_interval` and the ceilings against observed behaviour; the shipped defaults
       are deliberately conservative guesses (D-21)
 - [ ] Transparent token refresh that fails loudly on revocation (D-29)
-- [ ] Collect `leagues` → `teams` → `players` → `draft_picks` → `rosters`, all idempotent
-      upserts (D-19)
+- [ ] ~~Collect `leagues` → `teams` → `players` → `draft_picks` → `rosters`, all idempotent
+      upserts~~ — *blocked (D-47)*, every one of them: an upsert is a write
+- [ ] ~~`rosters`~~ additionally *blocked (D-48)*, whose scope question lands on this table
+      directly and is not resolved by a yes to D-47
 - [ ] Test each collector's **contract**, not only its parsing: what it returns on a malformed
       payload, a missing field, an empty list; what inputs it refuses. Parsing logic wrapped in a
       thin contract is exactly the shape that hid five defects in the backoff module (D-44)
@@ -179,7 +210,9 @@ tests the empty-draft path before the season makes it unreachable.
 
 ---
 
-## Phase 5 — Backfill
+## Phase 5 — Backfill · **Blocked (D-47)**
+
+The whole phase writes Yahoo data to disk. Nothing here starts until D-47 is answered.
 
 Deliberately before the season starts, because prior seasons are the only complete test data
 available (D-17).
@@ -202,8 +235,8 @@ Then, in this order, stopping at each step to look at what happened:
 - [ ] Read the retry log: were requests paced, was any throttling seen and handled? Nothing
       throttling is a data point, not a pass — it means untested, not working (D-21a)
 - [ ] Inspect the rows written; confirm they match what Yahoo displays for those weeks
-- [ ] **One league, full season.** Confirms `matchups`, `standings`, and `player_weekly_stats` —
-      the tables 2026 cannot populate until games are played
+- [ ] ~~**One league, full season.** Confirms `matchups`, `standings`, and
+      `player_weekly_stats`~~ — *blocked (D-47)*, and `player_weekly_stats` additionally by D-48
 - [ ] Re-run that same backfill and confirm nothing duplicates (D-19)
 - [ ] **Widen to the remaining leagues**, only once the above is clean
 
@@ -220,11 +253,13 @@ Then, in this order, stopping at each step to look at what happened:
 
 ---
 
-## Phase 7 — In-season collection
+## Phase 7 — In-season collection · **Blocked (D-47)**
 
 Unreachable until week 1 has played, but validated ahead of time by the phase 5 backfill.
 
-- [ ] Collect `matchups`, `standings`, `player_weekly_stats`
+- [ ] ~~Collect `matchups`, `standings`, `player_weekly_stats`~~ — *blocked (D-47)*;
+      `player_weekly_stats` additionally by D-48, whose answer decides whether stats may be
+      collected league-wide or only for my own eight teams
 - [ ] Hourly timer for game windows, alongside the existing daily timer (D-24)
 - [ ] Standings and rank-over-time panels in Grafana
 - [ ] Confirm the first live week against Yahoo's own displayed totals — the one check that
