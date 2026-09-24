@@ -60,9 +60,16 @@ This gated every task from phase 3 onward. It gates nothing now.
 - [ ] **Record `client_id` / `client_secret` into `.env`** from `.env.example` (D-28). `.env`
       currently has `YAHOO_CLIENT_ID` and `YAHOO_CLIENT_SECRET` **empty** — the new app's
       credentials are not on this host yet, and nothing in phase 3 can run until they are
-- [ ] **Write the deletion procedure — `tilasto purge`, or a documented manual one (D-50).** Moved
-      up: it is the mechanism if the D-47 decision is reversed, and its scope grows the moment
-      collection starts. Build it before the backfill, not after
+- [x] **Deletion procedure built — `tilasto purge` (D-50), 2026-09-24.** Moved up because it is
+      the mechanism if the D-47 decision is reversed, and because its scope grows the moment
+      collection starts. `--data` and `--credentials` are independent and neither implies the
+      other, so clearing the collection cannot cost the Postgres password; `--confirm` is required
+      to delete anything. Every purge verifies by independent re-read and raises if what it deleted
+      is still present. 18 tests, most of them about what it preserves rather than what it removes
+- [x] Exercised against the live database: refused with no target flag, dry run changed nothing,
+      then `--data --confirm` removed a seeded archive file and left `schema_migrations` and all
+      11 tables intact. The credential path is covered by tests against synthetic files rather
+      than by running it on the working `.env`
 
 **Get an answer to D-47 and D-48 — asked 2026-09-01, never answered.** Deliberately not a checkbox
 in either state. It was not done, and it is not outstanding work either: collection was unblocked on

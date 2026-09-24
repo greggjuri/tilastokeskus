@@ -213,6 +213,38 @@ always safe.
 
 ---
 
+## Deleting everything
+
+Ending API access carries an obligation to delete the collected data and the credentials, so that
+is a command rather than a procedure to improvise under a deadline.
+
+```bash
+tilasto purge --data                     # collected rows and the raw archive
+tilasto purge --credentials              # token file and the Yahoo keys in .env
+tilasto purge --data --credentials --confirm
+```
+
+**The two targets are independent and neither implies the other.** This matters more than it looks:
+`.env` holds the Yahoo credentials *and* the Postgres password, so a routine "clear the data" must
+not silently cost you the database password. `--credentials` blanks only `YAHOO_CLIENT_ID`,
+`YAHOO_CLIENT_SECRET`, and `YAHOO_REFRESH_TOKEN`, leaving every other line byte-identical --
+`YAHOO_REDIRECT_URI` included, since that is your own configuration rather than anything Yahoo
+issued.
+
+**Nothing is deleted without `--confirm`.** Without it you get a dry run that reports exactly what
+would go.
+
+**It verifies rather than claims.** After deleting, it re-counts every table, re-checks the archive
+directory, and re-reads the credential files, and fails loudly if anything it deleted is still
+there. A purge that cannot prove it worked has not worked.
+
+What it does *not* cover, because nothing here can reach it -- database dumps you have taken
+elsewhere, Grafana dashboards that may have cached query results, and any payload copied out during
+a spike. The command prints this reminder after a real run.
+
+`schema_migrations` is deliberately left alone, so the database stays migrated rather than becoming
+one that believes it is empty.
+
 ## Monitoring
 
 Every run is recorded to the `collector_runs` table, success or failure. The Prometheus exporter

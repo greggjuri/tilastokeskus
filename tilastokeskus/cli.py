@@ -5,6 +5,8 @@
     tilasto collect --all                    full collection run, current week
     tilasto collect --backfill --weeks 1-10  completed weeks, same code path
     tilasto status                           last run, row counts, staleness
+    tilasto purge --data                     delete collected rows and the raw archive
+    tilasto purge --credentials              delete the token file and the Yahoo keys
 
 Season is a parameter everywhere, defaulting to the current season rather than a hardcoded
 year (DECISIONS.md D-03).
@@ -19,6 +21,7 @@ from . import __version__, migrate
 from .collect import CollectionPlan
 from .config import default_season, load_settings
 from .db import DatabaseUnavailable
+from .purge import PurgeVerificationFailed
 from .weeks import WeekRangeError, parse_weeks
 
 EXIT_OK = 0
@@ -69,6 +72,22 @@ def build_parser() -> argparse.ArgumentParser:
     migrate_cmd = sub.add_parser("migrate", help="apply schema migrations")
     migrate_cmd.add_argument(
         "--dry-run", action="store_true", help="list pending migrations without applying"
+    )
+
+    # Deletion is split in two on purpose (D-50). --data and --credentials are independent, and
+    # neither implies the other: clearing the collection must not cost the Postgres password, and
+    # revoking access must not throw away the data. There is no flag that means "both" by default.
+    purge_cmd = sub.add_parser("purge", help="delete Yahoo data and/or credentials (D-50)")
+    purge_cmd.add_argument(
+        "--data", action="store_true", help="collected rows and the raw response archive"
+    )
+    purge_cmd.add_argument(
+        "--credentials",
+        action="store_true",
+        help="token file and the Yahoo keys in .env; other keys are left untouched",
+    )
+    purge_cmd.add_argument(
+        "--confirm", action="store_true", help="actually delete; without it this is a dry run"
     )
 
     return parser
@@ -134,6 +153,58 @@ def cmd_status(args: argparse.Namespace, season: int) -> int:
     raise NotImplementedError("status is not implemented yet")
 
 
+def cmd_purge(args: argparse.Namespace, season: int) -> int:
+    from .purge import purge_credentials, purge_data
+
+    if not (args.data or args.credentials):
+        print(
+            "tilasto: purge needs --data, --credentials, or both.\n"
+            "  --data         collected rows and the raw response archive\n"
+            "  --credentials  token file and the Yahoo keys in .env\n"
+            "Nothing is deleted by default, and neither flag implies the other (D-50).",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
+
+    dry_run = not args.confirm
+    if dry_run:
+        print("DRY RUN — nothing is deleted. Re-run with --confirm to delete.\n")
+
+    if args.data:
+        report = purge_data(load_settings(season), dry_run=dry_run)
+        verb = "would delete" if dry_run else "deleted"
+        print(f"data: {verb} {report.total_rows} row(s) across {len(report.rows_deleted)} table(s)")
+        for table, count in sorted(report.rows_deleted.items()):
+            if count:
+                print(f"  {table}: {count}")
+        print(f"      {verb} {report.archive_files_deleted} raw archive file(s) "
+              f"from {report.archive_path}")
+        if not dry_run:
+            print("      verified: every purged table re-counted at 0, archive gone")
+
+    if args.credentials:
+        report = purge_credentials(dry_run=dry_run)
+        verb = "would delete" if dry_run else "deleted"
+        for path in report.token_files_deleted:
+            print(f"credentials: {verb} token file {path}")
+        if not report.token_files_deleted:
+            print("credentials: no token file found")
+        for path, cleared in report.env_files_cleared.items():
+            verb_c = "would clear" if dry_run else "cleared"
+            print(f"      {verb_c} {len(cleared)} Yahoo key(s) in {path}"
+                  + (f": {', '.join(cleared)}" if cleared else ""))
+            preserved = report.preserved_keys.get(path, [])
+            print(f"      left {len(preserved)} other key(s) untouched"
+                  + (f": {', '.join(preserved)}" if preserved else ""))
+        if not dry_run:
+            print("      verified: no token file, no Yahoo key holds a value")
+
+    if not dry_run:
+        print("\nRemaining by hand, not covered here: database dumps, Grafana cached query "
+              "results, and any payload copied elsewhere during a spike (D-49, D-50).")
+    return EXIT_OK
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
@@ -144,6 +215,7 @@ def main(argv: list[str] | None = None) -> int:
         "collect": cmd_collect,
         "leagues": cmd_leagues,
         "status": cmd_status,
+        "purge": cmd_purge,
     }
 
     try:
@@ -151,6 +223,9 @@ def main(argv: list[str] | None = None) -> int:
     except WeekRangeError as exc:
         print(f"tilasto: {exc}", file=sys.stderr)
         return EXIT_USAGE
+    except PurgeVerificationFailed as exc:
+        print(f"tilasto: {exc}", file=sys.stderr)
+        return EXIT_ERROR
     except DatabaseUnavailable as exc:
         print(f"tilasto: {exc}", file=sys.stderr)
         return EXIT_ERROR

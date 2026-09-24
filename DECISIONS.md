@@ -631,7 +631,25 @@ and player names and point totals do not.
 ### D-50 — Ending API access requires a full deletion, and nothing implements one · Active
 
 Constraint recorded in `AGREEMENT.md`, not committed, including the list of what a purge must
-cover. `tilasto purge` does not exist; until it does the procedure is manual and documented.
+cover. **`tilasto purge` exists as of 2026-09-24.**
+
+Two independent targets, `--data` and `--credentials`, neither implying the other. That split is the
+design rather than a convenience: the Yahoo credentials share a file with the Postgres password, so a
+routine clearing of collected data must not silently cost the database password, and revoking access
+must not require discarding the collection. `--data` truncates the Fantasy tables and removes the raw
+archive; `--credentials` deletes the token file and blanks only the Yahoo keys, leaving every other
+line of the file byte-identical. Nothing deletes without `--confirm`.
+
+It verifies rather than claims. Each purge is followed by an independent re-read — re-counting rows,
+re-checking the archive, re-reading the files — and raises if anything it deleted is still there.
+Reporting success because the statements ran is precisely the failure mode the D-41 probe table
+exists to rule out, and this is the command where it would matter most.
+
+Two scope decisions worth stating. `collector_runs` is purged with the data despite holding health
+rather than Fantasy Information: its `error` column stores raw exception text, which can carry a
+league key or a payload fragment that is indistinguishable from an ordinary message afterwards.
+`schema_migrations` is never purged, because truncating it would leave a migrated database that
+believes it is empty and a re-run that fails against existing tables.
 
 It was the one piece of agreement-driven work **not** blocked by D-47 — it deletes Yahoo data rather
 than writing it — and a literal answer to D-47 would have made it the first thing needed.
