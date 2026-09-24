@@ -36,38 +36,72 @@ REQUEST_TIMEOUT = 30
 
 
 @dataclass(frozen=True)
-class CheckResult:
-    """One probe. `status` is None when the request never got far enough to have one."""
+class AppResult:
+    """One app's probe. `status` is None when the request never got far enough to have one."""
 
-    checked_at: datetime
+    label: str
     status: int | None
     ok: bool
     detail: str
 
-    def message(self) -> str:
-        """The Discord message. Timestamp and status appear in every one of them."""
-        stamp = self.checked_at.strftime("%Y-%m-%d %H:%M:%S %z")
+    def line(self) -> str:
         code = self.status if self.status is not None else "no response"
+        mark = "✅" if self.ok else "⏳"
+        return f"{mark} **{self.label}** — `{code}` — {self.detail}"
+
+
+@dataclass(frozen=True)
+class CheckResult:
+    """A full check: every configured app, probed once.
+
+    Both apps are watched because the access application was submitted under the Public Client
+    while the project runs on the Confidential one. Whichever Yahoo activates, one of these lines
+    changes -- and watching only one would look identical to nothing having happened (D-55).
+    """
+
+    checked_at: datetime
+    apps: list[AppResult]
+
+    @property
+    def ok(self) -> bool:
+        return any(app.ok for app in self.apps)
+
+    @property
+    def status(self) -> int | None:
+        """The primary app's status, kept so a single-app read of this is still meaningful."""
+        return self.apps[0].status if self.apps else None
+
+    def message(self) -> str:
+        """The Discord message. A timestamp and every app's status appear in all of them."""
+        stamp = self.checked_at.strftime("%Y-%m-%d %H:%M:%S %z")
+        lines = "\n".join(app.line() for app in self.apps)
 
         if self.ok:
+            live = ", ".join(app.label for app in self.apps if app.ok)
             return (
-                f"✅ **Yahoo Fantasy API access is LIVE** — `{code}`\n"
-                f"{stamp}\n"
-                f"{self.detail}\n"
+                f"✅ **Yahoo Fantasy API access is LIVE** — {live}\n"
+                f"{stamp}\n{lines}\n"
                 f"Next: run the phase 3 spike. This check can be turned off."
             )
-        return f"⏳ Yahoo Fantasy API still blocked — `{code}`\n{stamp}\n{self.detail}"
+        return f"⏳ Yahoo Fantasy API still blocked\n{stamp}\n{lines}"
 
 
-def _access_token(settings: Settings, session: requests.Session) -> str:
+def _access_token(settings: Settings, session: requests.Session, *,
+                  client_id: str, client_secret: str, refresh_token: str) -> str:
+    """Exchange a refresh token. A Public Client has no secret, so auth is omitted for it."""
+    data = {
+        "grant_type": "refresh_token",
+        "refresh_token": refresh_token,
+        "redirect_uri": settings.yahoo_redirect_uri,
+    }
+    if not client_secret:
+        # PKCE public client: the client_id goes in the body and there is nothing to authenticate
+        # with. Sending an empty Basic header instead would be rejected.
+        data["client_id"] = client_id
     response = session.post(
         TOKEN_URL,
-        data={
-            "grant_type": "refresh_token",
-            "refresh_token": settings.yahoo_refresh_token,
-            "redirect_uri": settings.yahoo_redirect_uri,
-        },
-        auth=(settings.yahoo_client_id, settings.yahoo_client_secret),
+        data=data,
+        auth=(client_id, client_secret) if client_secret else None,
         timeout=REQUEST_TIMEOUT,
     )
     if response.status_code != 200:
@@ -78,20 +112,17 @@ def _access_token(settings: Settings, session: requests.Session) -> str:
     return token
 
 
-def check(settings: Settings, *, session: requests.Session | None = None,
-          now: datetime | None = None) -> CheckResult:
-    """Probe the API once. Never raises — every failure becomes a CheckResult."""
-    session = session or requests.Session()
-    checked_at = now or datetime.now().astimezone()
-
-    if not settings.yahoo_refresh_token:
-        return CheckResult(checked_at, None, False,
-                           "No refresh token configured; cannot probe.")
+def _probe_app(settings: Settings, session: requests.Session, *, label: str,
+               client_id: str, client_secret: str, refresh_token: str) -> AppResult:
+    """Probe one app. Never raises — every failure becomes an AppResult."""
+    if not (client_id and refresh_token):
+        return AppResult(label, None, False, "not configured")
 
     try:
-        token = _access_token(settings, session)
+        token = _access_token(settings, session, client_id=client_id,
+                              client_secret=client_secret, refresh_token=refresh_token)
     except Exception as exc:  # noqa: BLE001 - a probe reports failures, it does not raise them
-        return CheckResult(checked_at, None, False, f"Auth failed before the probe: {exc}")
+        return AppResult(label, None, False, f"auth failed before the probe: {exc}")
 
     try:
         response = session.get(
@@ -101,20 +132,38 @@ def check(settings: Settings, *, session: requests.Session | None = None,
             timeout=REQUEST_TIMEOUT,
         )
     except Exception as exc:  # noqa: BLE001
-        return CheckResult(checked_at, None, False, f"Request failed: {exc}")
+        return AppResult(label, None, False, f"request failed: {exc}")
 
     status = response.status_code
     if status == 200:
-        return CheckResult(checked_at, status, True, "`/fantasy/v2/game/nfl` returned 200.")
+        return AppResult(label, status, True, "`/fantasy/v2/game/nfl` returned 200")
     if status == 403:
-        return CheckResult(checked_at, status, False,
-                           "Application still not authorized. Token refresh succeeded, so this "
-                           "remains a Yahoo-side access state.")
+        return AppResult(label, status, False, "still not authorized")
     if status == 401:
-        return CheckResult(checked_at, status, False,
-                           "Token rejected — the refresh token may have been revoked. This is a "
-                           "different failure from the standing 403 and needs looking at.")
-    return CheckResult(checked_at, status, False, f"Unexpected status {status}.")
+        return AppResult(label, status, False,
+                         "token rejected — the refresh token may have been revoked, which is a "
+                         "different failure from the standing 403 and needs looking at")
+    return AppResult(label, status, False, f"unexpected status {status}")
+
+
+def check(settings: Settings, *, session: requests.Session | None = None,
+          now: datetime | None = None) -> CheckResult:
+    """Probe every configured app once. Never raises."""
+    session = session or requests.Session()
+    checked_at = now or datetime.now().astimezone()
+
+    apps = [
+        _probe_app(settings, session, label="Confidential Client",
+                   client_id=settings.yahoo_client_id,
+                   client_secret=settings.yahoo_client_secret,
+                   refresh_token=settings.yahoo_refresh_token),
+    ]
+    if settings.yahoo_public_client_id or settings.yahoo_public_refresh_token:
+        apps.append(_probe_app(settings, session, label="Public Client (applied under)",
+                               client_id=settings.yahoo_public_client_id,
+                               client_secret="",
+                               refresh_token=settings.yahoo_public_refresh_token))
+    return CheckResult(checked_at, apps)
 
 
 def post_to_discord(webhook_url: str, content: str, *,

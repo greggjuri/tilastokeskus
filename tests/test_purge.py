@@ -31,6 +31,8 @@ YAHOO_CLIENT_ID=some-client-id
 YAHOO_CLIENT_SECRET=some-secret
 YAHOO_REDIRECT_URI=https://localhost:8000
 YAHOO_REFRESH_TOKEN=some-refresh-token
+YAHOO_PUBLIC_CLIENT_ID=some-public-id
+YAHOO_PUBLIC_REFRESH_TOKEN=some-public-refresh
 
 # ---- PostgreSQL ----
 PGHOST=localhost
@@ -42,6 +44,9 @@ PGPASSWORD=the-database-password
 # ---- Collector ----
 TILASTO_SEASON=2026
 TILASTO_RAW_DIR=raw
+
+# ---- Not a Yahoo credential; purge must leave this alone ----
+DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/keep-me
 """
 
 
@@ -65,10 +70,28 @@ def test_only_yahoo_credentials_are_cleared(tmp_path):
     path = write_env(tmp_path)
     cleared, preserved = _clear_env_keys(path, YAHOO_CREDENTIAL_KEYS, dry_run=False)
 
-    assert sorted(cleared) == ["YAHOO_CLIENT_ID", "YAHOO_CLIENT_SECRET", "YAHOO_REFRESH_TOKEN"]
+    assert sorted(cleared) == ["YAHOO_CLIENT_ID", "YAHOO_CLIENT_SECRET", "YAHOO_PUBLIC_CLIENT_ID",
+                               "YAHOO_PUBLIC_REFRESH_TOKEN", "YAHOO_REFRESH_TOKEN"]
     for key in ("PGHOST", "PGPORT", "PGDATABASE", "PGUSER", "PGPASSWORD",
-                "TILASTO_SEASON", "TILASTO_RAW_DIR", "YAHOO_REDIRECT_URI"):
+                "TILASTO_SEASON", "TILASTO_RAW_DIR", "YAHOO_REDIRECT_URI",
+                "DISCORD_WEBHOOK_URL"):
         assert key in preserved
+
+
+def test_the_discord_webhook_survives_a_yahoo_credential_purge(tmp_path):
+    """It is a secret, but it is ours rather than Yahoo's, so D-50 does not reach it (D-55)."""
+    path = write_env(tmp_path)
+    _clear_env_keys(path, YAHOO_CREDENTIAL_KEYS, dry_run=False)
+    assert "DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/keep-me" in path.read_text()
+
+
+def test_both_watched_apps_credentials_are_purged(tmp_path):
+    """apicheck watches two apps; both sets are Yahoo credentials and both go."""
+    path = write_env(tmp_path)
+    _clear_env_keys(path, YAHOO_CREDENTIAL_KEYS, dry_run=False)
+    text = path.read_text()
+    assert "YAHOO_PUBLIC_CLIENT_ID=\n" in text
+    assert "YAHOO_PUBLIC_REFRESH_TOKEN=\n" in text
 
 
 def test_redirect_uri_is_not_a_credential(tmp_path):

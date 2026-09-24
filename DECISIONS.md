@@ -489,8 +489,21 @@ missing message obvious at a glance. And `Persistent=true` matches D-40's reason
 desktop is regularly off, and a missed check firing at next boot is better than a skipped day in a
 series whose gaps are the signal.
 
-The webhook URL is a credential, and `tilasto purge --credentials` deliberately does **not** clear
-it (D-50). That command exists to delete Yahoo Materials; the Discord webhook is ours and has
+**Amended 2026-09-24 — both applications are watched, not one.** The check originally probed only
+the Confidential Client, which is the app the project runs on. That was the wrong single choice: the
+access application was submitted under the *other* app, the Public Client, so the client ID Yahoo is
+most likely to activate is the one that was not being watched. A daily 403 would have kept arriving
+while access was quietly live elsewhere, and nothing about the message would have hinted at it.
+
+Watching one of two candidates reproduces the exact failure this entry is built to avoid, one level
+up: a heartbeat that cannot distinguish "no change" from "change you are not looking at". Both apps
+are now probed and both statuses appear in every message, so whichever Yahoo activates, a line
+changes. The Public Client has no secret and authenticates with a PKCE-obtained refresh token, with
+its client ID in the request body rather than a Basic header — an empty Basic header is rejected.
+
+Its credentials **are** Yahoo credentials and are purged with the rest by `tilasto purge
+--credentials`. The Discord webhook URL is also a credential, and `tilasto purge --credentials`
+deliberately does **not** clear it (D-50). That command exists to delete Yahoo Materials; the Discord webhook is ours and has
 nothing to do with Yahoo. It is still a secret — anyone holding it can post to the channel — so it
 lives in `.env` and never appears in a log line, an exception, or a return value.
 

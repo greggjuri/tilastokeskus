@@ -53,6 +53,11 @@ class Settings:
     yahoo_client_secret: str
     yahoo_redirect_uri: str
     yahoo_refresh_token: str
+    # The Public Client the access application was submitted under. It has no secret — its token
+    # comes from a PKCE flow — and it is watched alongside the primary app because Yahoo is most
+    # likely to activate access on the client ID they actually approved (D-55).
+    yahoo_public_client_id: str = ""
+    yahoo_public_refresh_token: str = ""
     # Not a Yahoo credential: it is ours, and `tilasto purge --credentials` deliberately leaves
     # it alone. It is still a secret — anyone holding it can post to the channel.
     discord_webhook_url: str = ""
@@ -90,5 +95,7 @@ def load_settings(season: int | None = None) -> Settings:
         yahoo_client_secret=os.getenv("YAHOO_CLIENT_SECRET", ""),
         yahoo_redirect_uri=os.getenv("YAHOO_REDIRECT_URI", "https://localhost:8000"),
         yahoo_refresh_token=os.getenv("YAHOO_REFRESH_TOKEN", ""),
+        yahoo_public_client_id=os.getenv("YAHOO_PUBLIC_CLIENT_ID", ""),
+        yahoo_public_refresh_token=os.getenv("YAHOO_PUBLIC_REFRESH_TOKEN", ""),
         discord_webhook_url=os.getenv("DISCORD_WEBHOOK_URL", ""),
     )

@@ -272,8 +272,10 @@ the agreement signed (2026-09-01), where those threads are still queued. "Approv
 provisioned" is consistent with lag on a process Yahoo is visibly still building. The cheap move is
 to retry daily for a week before treating it as stuck.
 
-**Automated 2026-09-24: `tilasto apicheck`** probes once a day at 13:00 and posts the result to
-Discord whether it changed or not (D-55). It writes nothing and always exits 0, so the timer keeps
+**Automated 2026-09-24: `tilasto apicheck`** probes **both applications** once a day at 13:00 and
+posts the result to Discord whether it changed or not (D-55). Both, because the access application
+was submitted under the Public Client while the project runs on the Confidential one — watching only
+the latter would have reported 403 indefinitely if Yahoo activated the app they actually approved. It writes nothing and always exits 0, so the timer keeps
 firing rather than parking the unit in `failed`. An unchanged 403 arriving daily is the message; the
 day it stops arriving is itself information. This replaces retrying by hand.
 

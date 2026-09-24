@@ -237,9 +237,14 @@ systemctl --user enable --now tilastokeskus-apicheck.timer
 
 Three properties worth knowing, each deliberate:
 
+- **It checks both applications.** The project runs on the Confidential Client, but the access
+  application was submitted under the older Public Client -- so the client ID Yahoo is most likely
+  to activate is not the one the collector uses. Both statuses appear in every message. The Public
+  Client needs `YAHOO_PUBLIC_CLIENT_ID` and `YAHOO_PUBLIC_REFRESH_TOKEN`; it has no secret, and its
+  token comes from a PKCE flow.
 - **It posts every day, including when nothing changed.** A notifier that only speaks up on change
   is indistinguishable from one that has silently died. An unchanged `403` at 13:00 says the check
-  ran, the token still refreshes, and the answer is still no.
+  ran, the tokens still refresh, and the answer is still no.
 - **It always exits 0.** A failing oneshot parks the user unit in `failed` and stops being a
   heartbeat. Problems are reported in the message and the journal, never as an exit status.
 - **It writes nothing** — no rows, no archive, no run log. Its unit runs `ProtectSystem=strict`

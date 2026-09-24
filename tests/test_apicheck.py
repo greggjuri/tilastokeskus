@@ -8,11 +8,16 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from tilastokeskus.apicheck import CheckResult, check, post_to_discord
+from tilastokeskus.apicheck import AppResult, CheckResult, check, post_to_discord
 from tilastokeskus.cli import main
 from tilastokeskus.config import Settings
 
 AT = datetime(2026, 9, 24, 13, 0, 5, tzinfo=UTC)
+
+
+def one(status, ok=False, detail="", label="Confidential Client") -> CheckResult:
+    """A CheckResult with a single app, for the tests that only care about one."""
+    return CheckResult(AT, [AppResult(label, status, ok, detail)])
 
 
 def settings(**overrides) -> Settings:
@@ -21,6 +26,7 @@ def settings(**overrides) -> Settings:
         "pg_password": "p", "season": 2026, "raw_dir": "raw", "yahoo_client_id": "id",
         "yahoo_client_secret": "secret", "yahoo_redirect_uri": "https://localhost:8000",
         "yahoo_refresh_token": "refresh-abc", "discord_webhook_url": "https://discord/hook",
+        "yahoo_public_client_id": "", "yahoo_public_refresh_token": "",
     }
     base.update(overrides)
     return Settings(**base)
@@ -66,11 +72,11 @@ class FakeSession:
 
 def test_every_message_carries_a_timestamp_and_a_status():
     for result in [
-        CheckResult(AT, 200, True, "fine"),
-        CheckResult(AT, 403, False, "blocked"),
-        CheckResult(AT, 401, False, "revoked"),
-        CheckResult(AT, 500, False, "odd"),
-        CheckResult(AT, None, False, "never got a status"),
+        one(200, True, "fine"),
+        one(403, False, "blocked"),
+        one(401, False, "revoked"),
+        one(500, False, "odd"),
+        one(None, False, "never got a status"),
     ]:
         message = result.message()
         assert "2026-09-24 13:00:05" in message
@@ -79,8 +85,65 @@ def test_every_message_carries_a_timestamp_and_a_status():
 
 
 def test_success_and_failure_messages_are_distinguishable():
-    assert "LIVE" in CheckResult(AT, 200, True, "").message()
-    assert "still blocked" in CheckResult(AT, 403, False, "").message()
+    assert "LIVE" in one(200, True, "").message()
+    assert "still blocked" in one(403, False, "").message()
+
+
+# --- both apps ----------------------------------------------------------------------------------
+
+
+def both(a_status, b_status) -> CheckResult:
+    return CheckResult(AT, [
+        AppResult("Confidential Client", a_status, a_status == 200, "d"),
+        AppResult("Public Client (applied under)", b_status, b_status == 200, "d"),
+    ])
+
+
+def test_both_apps_appear_in_every_message():
+    message = both(403, 403).message()
+    assert "Confidential Client" in message
+    assert "Public Client (applied under)" in message
+    assert message.count("403") == 2
+
+
+def test_either_app_going_live_is_reported_as_live():
+    """The whole point of watching two: access may be activated on the app we do not run on."""
+    assert both(403, 200).ok is True
+    assert "LIVE" in both(403, 200).message()
+    assert "Public Client (applied under)" in both(403, 200).message()
+
+    assert both(200, 403).ok is True
+    assert both(403, 403).ok is False
+
+
+def test_the_live_app_is_named_so_it_is_obvious_which_one_cleared():
+    message = both(403, 200).message()
+    live_line = message.splitlines()[0]
+    assert "Public Client (applied under)" in live_line
+    assert "Confidential Client" not in live_line
+
+
+def test_the_second_app_is_probed_only_when_configured():
+    session = FakeSession()
+    check(settings(), session=session, now=AT)
+    assert len(session.gets) == 1, "no second app configured, so only one probe"
+
+    session = FakeSession()
+    result = check(settings(yahoo_public_client_id="pub", yahoo_public_refresh_token="rt"),
+                   session=session, now=AT)
+    assert len(session.gets) == 2
+    assert len(result.apps) == 2
+
+
+def test_a_public_client_refresh_sends_no_basic_auth():
+    """A Public Client has no secret; sending an empty Basic header would be rejected."""
+    session = FakeSession()
+    check(settings(yahoo_public_client_id="pub", yahoo_public_refresh_token="rt"),
+          session=session, now=AT)
+    token_posts = [kw for url, kw in session.posts if "discord" not in url]
+    assert token_posts[0]["auth"] == ("id", "secret")       # confidential: Basic auth
+    assert token_posts[1]["auth"] is None                   # public: none
+    assert token_posts[1]["data"]["client_id"] == "pub"     # client_id in the body instead
 
 
 # --- the probe itself ---------------------------------------------------------------------------
@@ -94,14 +157,14 @@ def test_200_is_reported_as_access_live():
 def test_403_is_reported_as_still_blocked():
     result = check(settings(), session=FakeSession(probe_response=FakeResponse(403)), now=AT)
     assert (result.ok, result.status) == (False, 403)
-    assert "Yahoo-side" in result.detail
+    assert "still not authorized" in result.apps[0].detail
 
 
 def test_401_is_called_out_as_different_from_the_standing_403():
     """A revoked refresh token must not be mistaken for the usual 403."""
     result = check(settings(), session=FakeSession(probe_response=FakeResponse(401)), now=AT)
     assert result.status == 401
-    assert "revoked" in result.detail
+    assert "revoked" in result.apps[0].detail
 
 
 def test_a_failed_token_refresh_does_not_raise():
@@ -119,7 +182,7 @@ def test_a_network_error_does_not_raise():
 def test_missing_refresh_token_is_reported_not_raised():
     result = check(settings(yahoo_refresh_token=""), session=FakeSession(), now=AT)
     assert result.ok is False
-    assert "No refresh token" in result.detail
+    assert "not configured" in result.apps[0].detail
 
 
 # --- posting ------------------------------------------------------------------------------------
@@ -158,32 +221,32 @@ def _patch(monkeypatch, result, delivered=True):
 
 
 def test_exit_zero_when_access_is_live(monkeypatch, capsys):
-    _patch(monkeypatch, CheckResult(AT, 200, True, "fine"))
+    _patch(monkeypatch, one(200, True, "fine"))
     assert main(["apicheck"]) == 0
     assert "LIVE" in capsys.readouterr().out
 
 
 def test_exit_zero_when_still_blocked(monkeypatch, capsys):
-    _patch(monkeypatch, CheckResult(AT, 403, False, "blocked"))
+    _patch(monkeypatch, one(403, False, "blocked"))
     assert main(["apicheck"]) == 0
     assert "still blocked" in capsys.readouterr().out
 
 
 def test_exit_zero_when_the_probe_itself_failed(monkeypatch):
-    _patch(monkeypatch, CheckResult(AT, None, False, "network down"))
+    _patch(monkeypatch, one(None, False, "network down"))
     assert main(["apicheck"]) == 0
 
 
 def test_exit_zero_when_the_webhook_post_fails(monkeypatch, capsys):
     """A Discord outage must not park the systemd unit in `failed`."""
-    _patch(monkeypatch, CheckResult(AT, 403, False, "blocked"), delivered=False)
+    _patch(monkeypatch, one(403, False, "blocked"), delivered=False)
     assert main(["apicheck"]) == 0
     assert "webhook returned 500" in capsys.readouterr().err
 
 
 def test_exit_zero_when_no_webhook_is_configured(monkeypatch, capsys):
     monkeypatch.setattr("tilastokeskus.apicheck.check",
-                        lambda *a, **k: CheckResult(AT, 403, False, "blocked"))
+                        lambda *a, **k: one(403, False, "blocked"))
     monkeypatch.setattr("tilastokeskus.cli.load_settings",
                         lambda *a, **k: settings(discord_webhook_url=""))
     assert main(["apicheck"]) == 0
@@ -193,7 +256,7 @@ def test_exit_zero_when_no_webhook_is_configured(monkeypatch, capsys):
 def test_no_post_flag_prints_without_posting(monkeypatch, capsys):
     posted = []
     monkeypatch.setattr("tilastokeskus.apicheck.check",
-                        lambda *a, **k: CheckResult(AT, 403, False, "blocked"))
+                        lambda *a, **k: one(403, False, "blocked"))
     monkeypatch.setattr("tilastokeskus.apicheck.post_to_discord",
                         lambda *a, **k: posted.append(1) or (True, "ok"))
     monkeypatch.setattr("tilastokeskus.cli.load_settings", lambda *a, **k: settings())

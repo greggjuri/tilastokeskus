@@ -58,6 +58,10 @@ YAHOO_CREDENTIAL_KEYS = (
     "YAHOO_CLIENT_ID",
     "YAHOO_CLIENT_SECRET",
     "YAHOO_REFRESH_TOKEN",
+    # The second watched app (D-55). These are Yahoo credentials like any other and go with the
+    # rest; DISCORD_WEBHOOK_URL deliberately does not, because it is ours rather than Yahoo's.
+    "YAHOO_PUBLIC_CLIENT_ID",
+    "YAHOO_PUBLIC_REFRESH_TOKEN",
 )
 
 TOKEN_FILENAME = ".yahoofantasy"
