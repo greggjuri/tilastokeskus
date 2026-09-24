@@ -53,6 +53,9 @@ class Settings:
     yahoo_client_secret: str
     yahoo_redirect_uri: str
     yahoo_refresh_token: str
+    # Not a Yahoo credential: it is ours, and `tilasto purge --credentials` deliberately leaves
+    # it alone. It is still a secret — anyone holding it can post to the channel.
+    discord_webhook_url: str = ""
 
     @property
     def conninfo(self) -> str:
@@ -87,4 +90,5 @@ def load_settings(season: int | None = None) -> Settings:
         yahoo_client_secret=os.getenv("YAHOO_CLIENT_SECRET", ""),
         yahoo_redirect_uri=os.getenv("YAHOO_REDIRECT_URI", "https://localhost:8000"),
         yahoo_refresh_token=os.getenv("YAHOO_REFRESH_TOKEN", ""),
+        discord_webhook_url=os.getenv("DISCORD_WEBHOOK_URL", ""),
     )

@@ -1,0 +1,17 @@
+[Unit]
+Description=Tilastokeskus daily Yahoo API access check
+Documentation=https://github.com/greggjuri/tilastokeskus
+
+[Timer]
+# 13:00 local, daily. Deliberately not randomised, unlike the collector: this is one request
+# rather than fifteen leagues' worth, so there is no burst to spread, and a fixed time makes a
+# missing message obvious at a glance.
+OnCalendar=*-*-* 13:00:00
+
+# Same reasoning as the collector (D-40): a triple-boot desktop is regularly off or in another
+# OS, so a missed run is normal. Persistent=true fires it at next boot rather than skipping the
+# day, which matters here because a silent gap is exactly what this check is meant to rule out.
+Persistent=true
+
+[Install]
+WantedBy=timers.target

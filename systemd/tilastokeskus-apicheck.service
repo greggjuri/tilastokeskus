@@ -1,0 +1,30 @@
+[Unit]
+Description=Tilastokeskus Yahoo API access check
+Documentation=https://github.com/greggjuri/tilastokeskus
+# Needs the network for Yahoo and for the Discord webhook. It needs nothing else — notably not
+# Postgres, because this unit writes nothing.
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/projects/tilastokeskus
+ExecStart=%h/projects/tilastokeskus/.venv/bin/tilasto apicheck
+
+# `apicheck` always exits 0, by design (D-55). A oneshot that exits non-zero parks the unit in
+# `failed`, and this exists to keep firing until Yahoo's answer changes. Status is reported in
+# the Discord message and here in the journal, never as an exit status.
+StandardOutput=journal
+StandardError=journal
+
+# One request to Yahoo and one to Discord. If it has not finished in two minutes something is
+# wrong, and the right response is to give up and try again tomorrow.
+TimeoutStartSec=2min
+
+# Harder than the collector's, because this one genuinely needs no write access anywhere: it
+# touches no database, writes no archive, and creates no files. ProtectSystem=strict with no
+# ReadWritePaths is therefore the accurate setting rather than a cautious one.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only

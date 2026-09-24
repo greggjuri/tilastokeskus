@@ -5,6 +5,7 @@
     tilasto collect --all                    full collection run, current week
     tilasto collect --backfill --weeks 1-10  completed weeks, same code path
     tilasto status                           last run, row counts, staleness
+    tilasto apicheck                         probe API access, report to Discord
     tilasto purge --data                     delete collected rows and the raw archive
     tilasto purge --credentials              delete the token file and the Yahoo keys
 
@@ -72,6 +73,13 @@ def build_parser() -> argparse.ArgumentParser:
     migrate_cmd = sub.add_parser("migrate", help="apply schema migrations")
     migrate_cmd.add_argument(
         "--dry-run", action="store_true", help="list pending migrations without applying"
+    )
+
+    # A daily probe of whether Yahoo has made API access live. Writes nothing and always exits 0
+    # (D-55), so a user timer keeps firing rather than parking the unit in `failed`.
+    apicheck_cmd = sub.add_parser("apicheck", help="probe API access and report to Discord")
+    apicheck_cmd.add_argument(
+        "--no-post", action="store_true", help="print the message instead of posting it"
     )
 
     # Deletion is split in two on purpose (D-50). --data and --credentials are independent, and
@@ -153,6 +161,34 @@ def cmd_status(args: argparse.Namespace, season: int) -> int:
     raise NotImplementedError("status is not implemented yet")
 
 
+def cmd_apicheck(args: argparse.Namespace, season: int) -> int:
+    """Probe, report, and exit 0 whatever happened.
+
+    Every failure path here ends in a return of EXIT_OK. A oneshot that exits non-zero leaves the
+    user unit in `failed` state, and this exists precisely to keep firing until the answer changes
+    — so the status goes in the message, never in the exit code (D-55).
+    """
+    from .apicheck import check, post_to_discord
+
+    settings = load_settings(season)
+    result = check(settings)
+    message = result.message()
+    print(message)
+
+    if args.no_post:
+        return EXIT_OK
+
+    if not settings.discord_webhook_url:
+        # Not an error worth failing over: the probe still ran and its result is in the journal.
+        print("apicheck: DISCORD_WEBHOOK_URL is not set; nothing posted", file=sys.stderr)
+        return EXIT_OK
+
+    delivered, detail = post_to_discord(settings.discord_webhook_url, message)
+    stream = sys.stdout if delivered else sys.stderr
+    print(f"apicheck: {detail}", file=stream)
+    return EXIT_OK
+
+
 def cmd_purge(args: argparse.Namespace, season: int) -> int:
     from .purge import purge_credentials, purge_data
 
@@ -216,6 +252,7 @@ def main(argv: list[str] | None = None) -> int:
         "leagues": cmd_leagues,
         "status": cmd_status,
         "purge": cmd_purge,
+        "apicheck": cmd_apicheck,
     }
 
     try:

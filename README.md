@@ -213,6 +213,38 @@ always safe.
 
 ---
 
+## Daily API access check
+
+Yahoo approved API access for this project but every application on the account is still refused at
+the API itself. That is a state on Yahoo's side which can change without notice, so it is checked
+once a day rather than by remembering to retry.
+
+```bash
+tilasto apicheck             # probe, then post the result to Discord
+tilasto apicheck --no-post   # probe and print; post nothing
+```
+
+Set `DISCORD_WEBHOOK_URL` in `.env` to a Discord incoming webhook. It is a secret — anyone holding
+it can post to that channel — and it is deliberately **not** cleared by `tilasto purge
+--credentials`, which exists to delete Yahoo material and has no business touching a webhook of
+yours.
+
+```bash
+cp systemd/tilastokeskus-apicheck.* ~/.config/systemd/user/
+systemctl --user daemon-reload
+systemctl --user enable --now tilastokeskus-apicheck.timer
+```
+
+Three properties worth knowing, each deliberate:
+
+- **It posts every day, including when nothing changed.** A notifier that only speaks up on change
+  is indistinguishable from one that has silently died. An unchanged `403` at 13:00 says the check
+  ran, the token still refreshes, and the answer is still no.
+- **It always exits 0.** A failing oneshot parks the user unit in `failed` and stops being a
+  heartbeat. Problems are reported in the message and the journal, never as an exit status.
+- **It writes nothing** — no rows, no archive, no run log. Its unit runs `ProtectSystem=strict`
+  with no writable paths at all.
+
 ## Deleting everything
 
 Ending API access carries an obligation to delete the collected data and the credentials, so that

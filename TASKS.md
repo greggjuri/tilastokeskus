@@ -272,6 +272,11 @@ the agreement signed (2026-09-01), where those threads are still queued. "Approv
 provisioned" is consistent with lag on a process Yahoo is visibly still building. The cheap move is
 to retry daily for a week before treating it as stuck.
 
+**Automated 2026-09-24: `tilasto apicheck`** probes once a day at 13:00 and posts the result to
+Discord whether it changed or not (D-55). It writes nothing and always exits 0, so the timer keeps
+firing rather than parking the unit in `failed`. An unchanged 403 arriving daily is the message; the
+day it stops arriving is itself information. This replaces retrying by hand.
+
 Two readings remain, and neither is distinguishable from here:
 
 - **Provisioning has not actually taken effect**, whatever the account page indicates. This is the
@@ -279,7 +284,8 @@ Two readings remain, and neither is distinguishable from here:
   survives an explicitly scoped token, which is what an account-level or grant-level gap looks like
   rather than a per-app misconfiguration.
 - **Propagation delay.** Provisioning completed very recently, and Yahoo's Fantasy authorization may
-  lag the account state by some unknown interval. Cheap to rule out: retry in a few hours.
+  lag the account state by some unknown interval. Now ruled out or confirmed automatically by the
+  daily check rather than by remembering to retry.
 
 What this does *not* cast doubt on, tested end to end against the real API: the OAuth flow in both
 Confidential and Public form, scoped and unscoped, the credentials, the token refresh, the transport,

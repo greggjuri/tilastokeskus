@@ -456,6 +456,44 @@ daily for rosters, transactions, and player metadata; draft picks one-shot per s
 Superseded by D-53. The hourly half existed to serve live scoring, which is now explicitly out of
 scope. The daily half survives intact and is now the whole of it.
 
+### D-55 — The API access check is a heartbeat, not an alert · Active
+
+`tilasto apicheck` probes Yahoo once a day at 13:00 and posts the answer to a Discord webhook. It
+exists because access was approved and the agreement signed while every application on the account
+is still refused at the API, and that is a Yahoo-side state which can change without anyone being
+told.
+
+**It posts unconditionally, including when nothing has changed.** The obvious design is to speak up
+only when the 403 clears, and it is wrong for the reason D-23 already establishes about staleness
+alerts: a notifier that is silent when nothing has changed is indistinguishable from one that has
+silently stopped running. An unchanged 403 arriving every day at 13:00 is the message — it says the
+check ran, the token still refreshes, and the answer is still no. The day it stops arriving is
+itself information.
+
+**It always exits 0.** A `oneshot` that exits non-zero parks the user unit in `failed`, and the
+whole point is to keep firing until the answer changes. Every failure path — no refresh token, a
+refused refresh, a network error, a Discord outage — is reported in the message and in the journal
+and returns success to systemd. This is the opposite of D-38's fail-loudly rule and the exception is
+deliberate: D-38 protects against a pipeline that silently produces nothing, whereas here silence is
+the thing being monitored rather than the risk.
+
+**It writes nothing.** No rows, no raw archive, no `collector_runs` entry. The module does not
+import the database at all, so this is structural rather than a promise, and its systemd unit is
+`ProtectSystem=strict` with no `ReadWritePaths` because it genuinely needs none. Note this is not a
+consequence of D-47 — that question was settled on 2026-09-24 — but of what the check is: a probe
+that persisted its results would be collection, and there is nothing here worth collecting.
+
+Two smaller choices. The timer is **not** randomised, unlike the collector's: this is one request
+rather than fifteen leagues' worth, so there is no burst to spread, and a fixed 13:00 makes a
+missing message obvious at a glance. And `Persistent=true` matches D-40's reasoning — a triple-boot
+desktop is regularly off, and a missed check firing at next boot is better than a skipped day in a
+series whose gaps are the signal.
+
+The webhook URL is a credential, and `tilasto purge --credentials` deliberately does **not** clear
+it (D-50). That command exists to delete Yahoo Materials; the Discord webhook is ours and has
+nothing to do with Yahoo. It is still a secret — anyone holding it can post to the channel — so it
+lives in `.env` and never appears in a log line, an exception, or a return value.
+
 ### D-53 — One cadence, daily · Active
 
 There is a single collection cadence: **once a day, and no more often.** No hourly timer, no
