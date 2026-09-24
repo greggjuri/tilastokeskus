@@ -68,8 +68,15 @@ This gated every task from phase 3 onward. It gates nothing now.
       is still present. 18 tests, most of them about what it preserves rather than what it removes
 - [x] Exercised against the live database: refused with no target flag, dry run changed nothing,
       then `--data --confirm` removed a seeded archive file and left `schema_migrations` and all
-      11 tables intact. The credential path is covered by tests against synthetic files rather
-      than by running it on the working `.env`
+      11 tables intact
+- [x] **Credential path exercised end to end against a copy of the real `.env`**, not only against
+      synthetic files. That was the one path touching real credentials and so the one never run
+      whole; a synthetic fixture cannot prove the line-by-line rewrite survives whatever quoting
+      and layout the actual file has. Result: 26 lines before and after, only the three Yahoo lines
+      changed, `PGPASSWORD` and all comments byte-identical. `HOME` was isolated for the run,
+      because `env_file_paths()` also reaches `~/.config/tilastokeskus/env` and a purge run from a
+      scratch directory would otherwise still find a real credential file outside it. Copies
+      shredded afterwards
 
 **Get an answer to D-47 and D-48 — asked 2026-09-01, never answered.** Deliberately not a checkbox
 in either state. It was not done, and it is not outstanding work either: collection was unblocked on
