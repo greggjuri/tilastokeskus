@@ -336,7 +336,7 @@ raw/
 
 ## Attribution and disclaimer
 
-[<img src="assets/Yahoo_Fantasy.svg" alt="Yahoo Fantasy" width="96">](https://football.fantasysports.yahoo.com/)
+[<img src="assets/Yahoo_Fantasy.svg" alt="Yahoo Fantasy" width="200">](https://football.fantasysports.yahoo.com/)
 
 Fantasy data provided by [Yahoo Fantasy](https://football.fantasysports.yahoo.com/).
 
@@ -354,7 +354,9 @@ any future use of it:
 - Do not add graphical elements, or combine them with other brands or marks.
 
 Scaling uniformly is fine and is what the `width` above does -- "proportions" means the aspect
-ratio, so the thing to avoid is stretching it, not sizing it. What is ruled out is recolouring it
+ratio, so the thing to avoid is stretching it, not sizing it. The file carries no intrinsic size,
+only a 293x293 `viewBox`, so it renders at whatever `width` is given and that number is the only
+thing controlling how large it appears. What is ruled out is recolouring it
 to match a theme, setting it in a row beside other service logos, or adding a border or shadow to
 make it sit better.
 
