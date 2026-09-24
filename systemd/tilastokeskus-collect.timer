@@ -3,11 +3,11 @@ Description=Tilastokeskus daily collection
 Documentation=https://github.com/greggjuri/tilastokeskus
 
 [Timer]
-# Daily cadence: rosters, transactions, player metadata (D-24).
-# The hourly in-season game-window timer is a separate unit, added in phase 7.
+# The only cadence: everything, once a day (D-53). There is no hourly unit and none is
+# planned -- live scoring is out of scope, not deferred.
 OnCalendar=daily
 
-# Spread the start so eight leagues are not all requested on the same second every day.
+# Spread the start so fifteen leagues are not all requested on the same second every day.
 RandomizedDelaySec=15min
 
 # The host is a triple-boot desktop, not a server (D-40). It is regularly powered off or

@@ -24,6 +24,9 @@ CREATE TABLE leagues (
     end_week        INT,
     playoff_start_week INT,
     is_finished     BOOLEAN NOT NULL DEFAULT FALSE,
+    -- Presentation only: set by hand, never inferred, and never an input to collection.
+    -- Grafana colors and filters on it; the collector does not read it at all (D-54).
+    tier            TEXT,
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX leagues_season_idx ON leagues (season);

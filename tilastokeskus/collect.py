@@ -47,7 +47,7 @@ def resolve_weeks(plan: CollectionPlan, league: dict) -> list[int]:
     the calendar produces correct-looking rows filed under the wrong week, which idempotent
     upserts then write cleanly (D-19) — silent corruption rather than visible failure.
 
-    Resolved *per league*: eight leagues can sit on different weeks.
+    Resolved *per league*: fifteen leagues can sit on different weeks.
     """
     if plan.weeks is not None:
         return plan.weeks

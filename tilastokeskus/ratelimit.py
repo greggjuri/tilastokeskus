@@ -87,7 +87,7 @@ class BackoffPolicy:
     max_attempts: int = 5
     max_cumulative_delay: float = 300.0
 
-    # Fraction of each delay randomised, to avoid eight leagues retrying in lockstep.
+    # Fraction of each delay randomised, to avoid fifteen leagues retrying in lockstep.
     # 0.0 makes delays exactly reproducible, which is what the tests use.
     jitter: float = 0.2
 

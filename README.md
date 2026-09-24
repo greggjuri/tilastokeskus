@@ -29,7 +29,7 @@ hole — see [Backfill](#backfill).
 
 ## Scope
 
-Eight Yahoo NFL redraft leagues for the 2026 season. Single user, read-only, private.
+Fifteen Yahoo NFL redraft leagues for the 2026 season. Single user, read-only, private.
 
 Redraft only — rosters reset each season, so no keeper or dynasty chains are modeled.
 
@@ -172,11 +172,11 @@ command.
 
 ### Scheduling
 
-Two cadences, both as systemd **user** timers — the collector needs no privilege, so nothing in the
-scheduling path needs root:
+One cadence — **daily, and no more often** — as a systemd **user** timer, since the collector
+needs no privilege and nothing in the scheduling path needs root. A single daily pass covers
+everything: rosters, transactions, player metadata, matchups, and standings.
 
-- **Hourly during game windows** — matchups, standings, live scoring
-- **Daily** — rosters, transactions, player metadata
+Live in-game scoring is deliberately out of scope. There is no hourly timer and none is planned.
 
 ```bash
 cp systemd/tilastokeskus-collect.* ~/.config/systemd/user/
@@ -189,9 +189,9 @@ Draft data is fetched once per season and skipped thereafter.
 
 **Availability.** The collection host is a multi-boot desktop, not an always-on server, so it only
 collects while powered on and booted into Linux. `Persistent=true` fires a missed run at next boot
-rather than skipping to the next day, and anything still missed is recoverable by backfill. The
-exception is in-season hourly collection: final weekly numbers backfill fine, but intra-game live
-scoring cannot be reconstructed after the fact.
+rather than skipping to the next day, and anything still missed is recoverable by backfill. With a
+daily cadence and no live-scoring requirement, that is the whole of it — a machine that spends two
+days in another OS costs a delayed run, not a hole in the data.
 
 All writes are idempotent upserts (`INSERT ... ON CONFLICT DO UPDATE`). Re-running a collection is
 always safe.
@@ -293,7 +293,6 @@ database with the schema applied and the read-only Grafana role verified.
 The collectors themselves are stubs — they need real API payloads to be written against, and every
 one of them fails with an explicit message rather than returning empty data.
 
-Season timing note: as of mid-August 2026, four of eight drafts are complete and the regular season
-has not started. Draft results and rosters are available now; matchup and scoring data begins
+Season timing note: draft results and rosters are available now; matchup and scoring data begins
 populating in week 1. Early development targets draft and roster data, which is static and
 therefore easier to build against.

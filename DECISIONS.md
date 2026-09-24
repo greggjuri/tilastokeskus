@@ -13,13 +13,24 @@ Last updated 2026-09-01.
 
 ## Scope
 
-### D-01 — Eight Yahoo NFL redraft leagues, 2026 season · Active
+### D-01 — Fifteen Yahoo NFL redraft leagues, 2026 season · Active
 
 Single user, read-only, private, non-commercial. Nothing is redistributed, resold, or exposed to
 third parties.
 
-Four of the eight leagues have drafted as of 2026-08-17; four have not. All eight exist as leagues
-with teams, so league and team collection works today regardless.
+**Corrected 2026-09-01 — fifteen leagues, not eight.** All fifteen are NFL redraft, so the
+correction is to a count and not to the shape of anything: D-02 still holds, the schema is
+untouched, and no collector changes. Every entry that carried the old number has been corrected
+with it — D-08 (label cardinality), D-21 and D-42 (call volume and jitter), D-24a (per-league
+current week) — along with the phase 3 league-key check, the README, and the brief.
+
+**Which leagues have drafted is no longer tracked as a project fact.** The count of drafted versus
+undrafted leagues was recorded here, in the README, and in the brief, and it has been removed from
+all three rather than re-counted against fifteen. It described a state that changes on its own
+within weeks, it was never an input to anything, and a stale number in three places is worse than
+no number in any. Draft data is still collected exactly as before — this drops the bookkeeping,
+not the resource. All fifteen exist as leagues with teams, so league and team collection works
+regardless of where any of them is in its draft.
 
 **Amended 2026-08-17 — prior seasons are in scope as test data only.** Phase 5 backfills a
 completed prior season because 2026 cannot populate `matchups`, `standings`, or
@@ -84,8 +95,8 @@ numeric trends and the collector health signal. Grafana reads Postgres natively,
 ### D-08 — No player names in Prometheus labels · Active
 
 A direct consequence of D-07, called out separately because it is the specific mistake most likely
-to be made by accident. Hundreds of players across eight leagues, churning weekly, is a cardinality
-explosion. Player-level data lives in Postgres and is queried directly by Grafana.
+to be made by accident. Fifteen leagues' worth of rostered players, churning weekly, is a
+cardinality explosion. Player-level data lives in Postgres and is queried directly by Grafana.
 
 ### D-08a — Prometheus labels are keys, never display names · Active
 
@@ -163,6 +174,33 @@ a single updated row cannot express history.
 Note that this rationale is about representing history, and is independent of whether the data can
 be re-fetched (see D-16 and D-17).
 
+### D-54 — `leagues.tier` is presentation only · Active
+
+A `tier` column on `leagues` distinguishes the leagues I actively follow from the bulk of them. It
+is set **by hand**, in SQL, and is never inferred — not from the league name, not from an entry
+fee, not from team count, not from anything Yahoo returns. No payload knows which leagues I care
+about, and any rule that guessed would be wrong in a way nobody would notice until a dashboard
+quietly emphasized the wrong league.
+
+**It does not affect collection. Not what is collected, not how often, not in what order.** Every
+league is collected identically, on the one daily cadence (D-53), whatever its tier. Tier exists so
+Grafana can color and filter. That is the whole of it.
+
+This is stated flatly because the name invites exactly the opposite assumption. "Tier" reads as a
+priority; a priority reads as a scheduling input; and the first plausible optimization anyone would
+reach for — collect tier 1 first, or more often, or alone when a run is cut short — is precisely
+what this entry forbids. A collector that treats leagues differently produces a dataset with holes
+shaped like my attention at the time, and the holes are invisible in the dashboard that caused
+them. Collection stays uniform; emphasis is a presentation concern and lives in the query layer,
+the same separation D-08a draws between keys and display names.
+
+The column is added to `001_initial.sql` rather than to a `002` migration, because nothing has been
+collected yet and there is no data to preserve — but the schema *has* already been applied to the
+live database (phase 2), and `schema_migrations` records `001` as done. Re-applying it means
+dropping and recreating, not re-running `tilasto migrate`. That is a one-line task now and would be
+a genuine migration a week after collection starts, which is the window this is taking advantage
+of.
+
 ---
 
 ## Collection
@@ -221,8 +259,9 @@ Raw archives are gitignored — they contain manager names and other league-memb
 
 ### D-21 — Back off exponentially on 999 and 429 · Active
 
-Yahoo throttles aggressively and does not document the limit. Eight leagues across roughly 17 weeks
-is not a large call volume, so this does not need to be elaborate — but it does need to exist.
+Yahoo throttles aggressively and does not document the limit. Fifteen leagues collected once a day
+across roughly 17 weeks is not a large call volume, and on a single daily cadence (D-53) it is
+predictable as well as small, so this does not need to be elaborate — but it does need to exist.
 
 ### D-21a — First sustained use is staged, and the backoff is proven before it is needed · Active
 
@@ -258,6 +297,17 @@ The point is not that a season of requests is objectively large. It is that the 
 wrong is asymmetric: unremarkable if it works, and disproportionate if it results in throttling or
 review against access that was granted on the basis of modest personal use.
 
+**Amended 2026-09-01 — the steady state is lighter than this ladder assumes, despite more
+leagues.** The escalation was written when the plan still included hourly in-season collection
+during game windows: repeated sweeps, fired by a game clock rather than chosen, at the exact hours
+Yahoo is busiest. That is gone (D-53). What replaces it is fifteen leagues, once a day, at an hour
+of my choosing — more leagues than the original eight, but a single predictable pass instead of
+bursts. The higher league count improves the rate-limit picture rather than worsening it, because
+what mattered was never the number of leagues but the number of passes over them.
+
+The ladder itself stands unchanged. It governs the backfill (phase 5), which remains the heaviest
+thing this project does and still the first occasion on which the limiter runs outside a test.
+
 ### D-42 — Backoff is bounded by two ceilings, and the delays themselves are tested · Active
 
 Exponential backoff with no ceiling turns a remote outage into a process that sleeps for hours
@@ -283,7 +333,7 @@ than merely counting retries. A backoff that retries the right number of times b
 where it meant 30s passes a behavioural test and fails in the field; only asserting on durations
 catches it.
 
-Jitter (±20% by default) exists so eight leagues do not retry in lockstep, and is disabled in tests
+Jitter (±20% by default) exists so fifteen leagues do not retry in lockstep, and is disabled in tests
 to keep delays exact. `Retry-After` is honoured when present but never shortens the computed delay —
 a `Retry-After: 0` during throttling would otherwise become a hot loop.
 
@@ -398,10 +448,39 @@ that matters most.
 Since D-17, the consequence of missing this is recoverable via backfill — but only once someone
 notices, which is the entire point of the alert.
 
-### D-24 — Two cadences · Active
+### D-24 — Two cadences · **Superseded** (2026-09-01)
 
-Hourly during in-season game windows for matchups, standings, and live points. Daily for rosters,
-transactions, and player metadata. Draft picks are one-shot per season: fetch once, skip if present.
+Original reasoning: hourly during in-season game windows for matchups, standings, and live points;
+daily for rosters, transactions, and player metadata; draft picks one-shot per season.
+
+Superseded by D-53. The hourly half existed to serve live scoring, which is now explicitly out of
+scope. The daily half survives intact and is now the whole of it.
+
+### D-53 — One cadence, daily · Active
+
+There is a single collection cadence: **once a day, and no more often.** No hourly timer, no
+game-window runs, no live scoring. Draft picks remain one-shot per season — fetch once, skip if
+present — which is a property of the resource rather than a second cadence.
+
+This removes a capability rather than deferring one. The hourly timer is not "phase 7 work not yet
+started"; it is not being built, and the phase 7 item for it has been deleted rather than moved
+down the list. That distinction matters, because a deferred item is an obligation that quietly
+accumulates and a removed one is not.
+
+What the daily run covers is everything: rosters, transactions, and player metadata, and — once
+games are played and the D-47 block lifts — matchups and standings. Every table on the same pass.
+
+Two things follow, both recorded where they belong rather than only here:
+
+- **Intra-game live scoring is out of scope, permanently.** It is the one thing backfill cannot
+  reconstruct (D-17), so this is a real loss and a deliberate one. Final weekly numbers arrive
+  intact on the next daily run; the series of scores *during* a game does not, and will not.
+- **The argument for moving the collector to an always-on host is void** (D-40, amended). Hourly
+  collection was the only thing that argument was preserving.
+
+Daily is also a better fit for what the data is for. A weekly matchup does not change between
+09:00 and 10:00 in any way a dashboard question depends on, and the questions this project exists
+to answer (D-01) are asked across a season, not across an afternoon.
 
 ---
 
@@ -421,7 +500,7 @@ wrong row is written cleanly and overwrites nothing that would reveal the error.
 
 Two consequences worth stating, because they are easy to get wrong:
 
-- **Current week is per-league, not global.** Eight leagues can have different `start_week` and
+- **Current week is per-league, not global.** Fifteen leagues can have different `start_week` and
   `current_week` values. A single "what week is it" resolved once per run and applied to all
   leagues is wrong. Resolve it per league, from that league's own resource.
 - **It is read before collection, not cached across runs.** A collection run refreshes the league
@@ -647,6 +726,18 @@ hour-granularity — the final weekly numbers backfill fine, but the intra-game 
 works, the data is recoverable, and moving it introduces its own problems. But if hourly in-season
 collection turns out to matter, the fix is a host that is always on and always running one OS,
 not more elaborate scheduling on a desktop.
+
+**Amended 2026-09-01 — that argument is void.** The single thing the move would have preserved was
+intra-game live scoring at hour granularity, and that is now explicitly out of scope (D-53). With
+one daily cadence, everything the collector fetches is retroactively fetchable (D-17),
+`Persistent=true` fires a missed run at next boot, and the staleness threshold is already
+calibrated to tolerate multi-day absence (D-23). A desktop that is powered off for two days costs
+nothing but a delayed run.
+
+The desktop therefore remains the collection host indefinitely, and the paragraph above is kept
+because the reasoning it contains is still correct — it is the premise that changed, not the
+argument. Everything else in this entry stands: availability is still a property of which OS is
+booted, and that is still a documented limitation rather than a defect.
 
 ### D-35 — Migrations live inside the package and are applied by `tilasto migrate` · Active
 

@@ -14,7 +14,7 @@ def test_falls_back_to_league_current_week():
 
 
 def test_current_week_is_per_league():
-    """Eight leagues can sit on different weeks; each resolves from its own resource (D-24a)."""
+    """Fifteen leagues can sit on different weeks; each resolves from its own resource (D-24a)."""
     plan = CollectionPlan(season=2026)
     leagues = [{"current_week": 3}, {"current_week": 4}]
     assert [resolve_weeks(plan, lg) for lg in leagues] == [[3], [4]]
