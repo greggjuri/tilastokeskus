@@ -213,18 +213,41 @@ it. With PKCE supplied the flow completed cleanly and returned a working token *
 secret involved**, so a Public Client is a viable shape for this project if it is ever wanted. It was
 then the Fantasy API, not the OAuth layer, that refused.
 
-So the position is: **no application on this account can call the Fantasy API.** Two readings remain,
-and they are not distinguishable from here:
+A third hypothesis was tested on the same day and also **disproved**: that the token was scopeless.
+Yahoo's own OAuth documentation omits `scope` from the authorization request entirely, and neither
+`yahoofantasy` nor the manual exchange had been sending one. Requesting `scope=fspt-r` explicitly
+changes nothing — the API returns the same 403.
+
+That test produced the strongest evidence in this whole sequence, and it points at Yahoo rather than
+at us. Yahoo's authorization endpoint **validates scopes against the application**: it accepts
+`fspt-r`, and rejects both `fspt-w` and an invented scope name with `invalid_scope`. So Yahoo's OAuth
+layer agrees the app is registered for Fantasy Sports read access, issues a token carrying that
+scope, and the Fantasy API then refuses it as an unauthorized application. Those two positions
+contradict each other, and only Yahoo can reconcile them.
+
+So the position is: **no application on this account can call the Fantasy API**, and the three
+hypotheses available from this side — wrong app, wrong client type, missing scope — are each tested
+and eliminated. Two readings remain, and neither is distinguishable from here:
 
 - **Provisioning has not actually taken effect**, whatever the account page indicates. This is the
-  reading the evidence favours — the failure is identical across two apps of different types, which
-  is what an account-level or grant-level gap looks like rather than a per-app misconfiguration.
+  reading the evidence favours — the failure is identical across two apps of different types and
+  survives an explicitly scoped token, which is what an account-level or grant-level gap looks like
+  rather than a per-app misconfiguration.
 - **Propagation delay.** Provisioning completed very recently, and Yahoo's Fantasy authorization may
   lag the account state by some unknown interval. Cheap to rule out: retry in a few hours.
 
 What this does *not* cast doubt on, tested end to end against the real API: the OAuth flow in both
-Confidential and Public form, the credentials, the token refresh, the transport, and the backoff. The
-403 arrives from Yahoo with a valid bearer token attached. Everything this project controls works.
+Confidential and Public form, scoped and unscoped, the credentials, the token refresh, the transport,
+and the backoff. The 403 arrives from Yahoo with a valid, correctly scoped bearer token attached.
+Everything this project controls works.
+
+**What to put to Yahoo**, since this is now a support question rather than a debugging one. Access was
+approved 2026-08-28 and the agreement signed 2026-09-01, but every application on the account returns
+`403 "This application is not authorized to perform this action."` on every Fantasy endpoint,
+including `/fantasy/v2/game/nfl`. Both client IDs behave identically. `api.login.yahoo.com` accepts
+`scope=fspt-r` for these apps while rejecting invalid scopes, so the permission is registered at the
+authorization layer and refused at the API layer. Quote the error string and both client IDs; that
+pair of facts is the checkable part.
 - [ ] Compare observed payloads against the schema and record every discrepancy (D-33)
 - [ ] Revise `001_initial.sql` before it is treated as settled — `transactions.payload`,
       `player_weekly_stats.stats`, `eligible_positions`, `draft_type`, `scoring_type`
