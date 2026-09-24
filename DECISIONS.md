@@ -726,11 +726,23 @@ Two consequences follow, and both cut against ordinary habits in this repository
 
 - **The asset must be Yahoo's own file, obtained from Yahoo.** "Only as provided" rules out
   recreating it, tracing it, exporting an approximation, or pulling whatever image a search
-  returns. Until the official asset is in hand the requirement stays unmet, and it is better to
-  record it as unmet than to satisfy it with something that violates the same paragraph.
-- **It cannot be styled to fit.** The usual instinct with a README badge or a dashboard header is
-  to resize, recolour, or sit it alongside other logos until it looks right. Every one of those is
-  specifically prohibited. Whatever layout the logo lands in adapts around it, not the reverse.
+  returns. Satisfying the requirement with a substitute would breach the same paragraph that
+  imposes it.
+- **It cannot be restyled to fit.** The usual instinct with a README badge or a dashboard header is
+  to recolour it to the theme, sit it in a row beside other service logos, or add a border so it
+  reads cleanly against the background. Each of those is specifically prohibited. Uniform scaling
+  is not: "proportions" means the aspect ratio, so sizing the logo is allowed and stretching it is
+  not.
+
+**Resolved 2026-09-24 for the README.** The official asset is committed at
+`assets/Yahoo_Fantasy.svg` -- 2,925 bytes, sha256 `c18837d9ce5659...`, sourced from Yahoo's brand
+asset host and unmodified since. It was checked before committing: static paths only, no scripts,
+no event handlers, no external references, a single brand colour. It is displayed in the README
+attribution section, uniformly scaled and linked back to Yahoo Fantasy.
+
+Provenance is recorded because "only as provided" is a claim about where a file came from, and a
+logo in a repository carries no evidence of its own origin. The Grafana half remains open until
+there is a dashboard (phase 6).
 
 Where it is owed: the README, which references the API, and the Grafana dashboard, which is where
 data actually surfaces to a reader (phase 6). The obligation is presently theoretical in the second

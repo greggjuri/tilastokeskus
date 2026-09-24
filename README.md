@@ -299,25 +299,27 @@ raw/
 
 ## Attribution and disclaimer
 
+[<img src="assets/Yahoo_Fantasy.svg" alt="Yahoo Fantasy" width="96">](https://football.fantasysports.yahoo.com/)
+
 Fantasy data provided by [Yahoo Fantasy](https://football.fantasysports.yahoo.com/).
 
 Yahoo's API terms require this attribution to be displayed wherever the data surfaces, with a link
-back to Yahoo Fantasy. It appears here and in the Grafana dashboard description. Do not remove it.
+back to Yahoo Fantasy, and require the official Yahoo Fantasy logo alongside it. Both appear here
+and are owed in the Grafana dashboard once it exists. Do not remove either.
 
-**The official Yahoo Fantasy logo is also required** wherever Fantasy Sports API information is
-referenced or used, and is **not yet present here** -- see `TASKS.md`. It is recorded as outstanding
-rather than filled with a substitute, because the same requirements that ask for the logo also
-govern how it may appear:
+The logo is `assets/Yahoo_Fantasy.svg`, Yahoo's own file, committed unmodified. Rules that govern
+any future use of it:
 
-- Use the word marks and logos **only as provided** -- Yahoo's own asset, not a recreation.
+- Use the word marks and logos **only as provided** -- Yahoo's asset, never a recreation or trace.
 - Do not rotate, invert, or animate them.
 - Do not change the colours, or the proportions.
 - Do not add shadows, strokes, textures, or other effects.
 - Do not add graphical elements, or combine them with other brands or marks.
 
-The practical reading: the logo is dropped in unmodified and the surrounding layout adapts to it.
-Resizing it to match a badge row, tinting it to fit a dashboard theme, or setting it beside other
-service logos are each specifically prohibited.
+Scaling uniformly is fine and is what the `width` above does -- "proportions" means the aspect
+ratio, so the thing to avoid is stretching it, not sizing it. What is ruled out is recolouring it
+to match a theme, setting it in a row beside other service logos, or adding a border or shadow to
+make it sit better.
 
 This project is not affiliated with, endorsed by, or sponsored by Yahoo, Yahoo Fantasy Sports, the
 NFL, or any of their affiliates. All trademarks belong to their respective owners. Yahoo Fantasy

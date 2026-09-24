@@ -385,21 +385,19 @@ Then, in this order, stopping at each step to look at what happened:
 
 ## Attribution — outstanding
 
-Yahoo's attribution requirements have two halves and only one is implemented (D-31). The text line
-is everywhere it belongs; the **official logo is nowhere**, and it is owed wherever Fantasy Sports
-API information is referenced or used.
+Yahoo's attribution requirements have two halves (D-31). The text line was always in place; the
+logo was missing until 2026-09-24 and is now in the README.
 
-- [ ] **Obtain the official Yahoo Fantasy logo asset from Yahoo.** It must be Yahoo's own file --
-      the requirements say the marks are used *only as provided*, which rules out recreating it,
-      tracing it, or using whatever image a search returns. This is the blocking step, and it is
-      not one to improvise around
-- [ ] Add it to the README alongside the attribution line, unmodified: original colours, original
-      proportions, no effects, not combined with other marks
+- [x] **Obtained the official Yahoo Fantasy logo asset**, committed unmodified at
+      `assets/Yahoo_Fantasy.svg` (2,925 bytes). Checked before committing: static paths only, no
+      scripts, no event handlers, no external references, one brand colour
+- [x] Added to the README beside the attribution line, uniformly scaled, original colours and
+      aspect ratio, no effects, not placed beside other marks, linked back to Yahoo Fantasy
 - [ ] Add it to the Grafana dashboard when that exists (phase 6), under the same constraints
-
-Currently theoretical in one place only: no dashboard exists and no data has been collected, so
-nothing is being displayed to anyone yet. It stops being theoretical the day either changes, which
-makes this worth closing before phase 6 rather than during it.
+- [ ] **Confirm the asset host is Yahoo's official brand source.** The file came from an AWS S3
+      bucket rather than a `yahoo.com` domain, which is ordinary for a brand-asset site but is not
+      self-evident from the URL. "Only as provided" is a claim about provenance, so it is worth
+      confirming once rather than assuming
 
 ---
 
