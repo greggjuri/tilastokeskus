@@ -67,6 +67,7 @@ Once approved, register or link a YDN application with:
 
 - OAuth Client Type: **Confidential Client**
 - Redirect URI: `https://localhost:8000`
+- Fantasy Sports permission: **Read**
 
 ### 2. Token
 
@@ -80,6 +81,20 @@ yahoofantasy login
 This opens a browser for authorization and writes a token file locally. A certificate warning is
 expected — Yahoo requires an HTTPS redirect and the local callback server uses a self-signed cert.
 Proceeding past it is fine.
+
+> **`yahoofantasy login` does not work on Python 3.12 or newer.** Version 1.4.9 starts its HTTPS
+> callback server with `ssl.wrap_socket`, which was removed in 3.12, so the command aborts with
+> `AttributeError` after the browser step. The browser half still succeeds: Yahoo redirects to
+> `https://localhost:8000/?code=...`, the page fails to load, and the authorization code is sitting
+> in the address bar. Copy it and exchange it directly:
+>
+> ```bash
+> curl -s -u "$YAHOO_CLIENT_ID:$YAHOO_CLIENT_SECRET" >   -d grant_type=authorization_code >   -d redirect_uri="$YAHOO_REDIRECT_URI" >   -d code=PASTE_CODE_HERE >   https://api.login.yahoo.com/oauth2/get_token
+> ```
+>
+> Put the `refresh_token` from the response into `.env` as `YAHOO_REFRESH_TOKEN`. The collector
+> reads that before it looks for the token file, so the broken login step is not on the critical
+> path. Codes are single-use and expire within about a minute.
 
 Access tokens expire hourly; the refresh token is long-lived. The collector refreshes
 transparently and fails loudly if the refresh token is revoked.
@@ -285,13 +300,17 @@ partial schema.
 
 ## Status
 
-Pre-alpha. Yahoo API access application submitted and under review.
+Pre-alpha. Yahoo API access is approved and provisioned, the agreement is signed, and a read-only
+token has been obtained.
 
-Working: package scaffolding, CLI argument handling, systemd timers, and a live PostgreSQL
-database with the schema applied and the read-only Grafana role verified.
+Working: package scaffolding, CLI argument handling, systemd timers, the request transport and rate
+limiter, and a live PostgreSQL database with the schema applied and the read-only Grafana role
+verified.
 
 The collectors themselves are stubs — they need real API payloads to be written against, and every
-one of them fails with an explicit message rather than returning empty data.
+one of them fails with an explicit message rather than returning empty data. The transport and
+limiter are verified against fakes only; nothing here has yet been exercised against Yahoo itself.
+That is the next step (`TASKS.md`, phase 3).
 
 Season timing note: draft results and rosters are available now; matchup and scoring data begins
 populating in week 1. Early development targets draft and roster data, which is static and

@@ -7,7 +7,7 @@ useful later than the conclusion that replaced it.
 Status values: **Active** · **Superseded** · **Open** (decided in principle, but not yet validated
 against real data or an answer that has been asked for and not received).
 
-Last updated 2026-09-01.
+Last updated 2026-09-24.
 
 ---
 
@@ -468,7 +468,8 @@ down the list. That distinction matters, because a deferred item is an obligatio
 accumulates and a removed one is not.
 
 What the daily run covers is everything: rosters, transactions, and player metadata, and — once
-games are played and the D-47 block lifts — matchups and standings. Every table on the same pass.
+games are played — matchups and standings. Every table on the same pass. (The D-47 block that this
+sentence originally also waited on was lifted 2026-09-24.)
 
 Two things follow, both recorded where they belong rather than only here:
 
@@ -569,29 +570,56 @@ reproduce no term.
 Constraint recorded in `AGREEMENT.md`, not committed. Where a term and a decision in this file
 disagree, the term wins and the decision is what changes.
 
-### D-47 — An unresolved question with Yahoo blocks all collection of Yahoo data · **Open**
+**2026-09-24 — access provisioned.** API access is live, a Confidential Client application exists
+with read-only Fantasy Sports scope, and a token has been obtained. The countersignature is still
+outstanding and does not affect when the obligations started.
 
-Constraint recorded in `AGREEMENT.md`, not committed. A clarification has been requested and not
-yet answered.
+### D-47 — An unanswered question with Yahoo, and collection proceeds anyway · **Unanswered — proceeding** (2026-09-24)
 
-Consequence, in force now, and it is the widest constraint on this project: **nothing that writes
-Yahoo data is built until the answer arrives.** No collectors, no raw archive writes, no backfill.
-Not a subset of tables — anything that persists Yahoo Fantasy Information.
+Constraint recorded in `AGREEMENT.md`, not committed. A clarification was requested on 2026-09-01 and
+**no answer was ever received.**
 
-Everything that touches no Yahoo data continues: the CLI, the migration runner and the schema, the
-systemd units, the transport, the rate limiter, and their tests. That is most of what remains
-buildable, and it was all written against fakes anyway.
+Consequence as originally recorded, and kept because the decision below departs from it rather than
+refuting it: **nothing that writes Yahoo data is built until the answer arrives.** No collectors, no
+raw archive writes, no backfill. Not a subset of tables — anything that persists Yahoo Fantasy
+Information. Everything touching no Yahoo data continued meanwhile: the CLI, the migration runner and
+the schema, the systemd units, the transport, the rate limiter, and their tests.
 
-A "no" is a live possibility, not a formality being waited out. It is worth knowing that before
-building anything else on the assumption that collection eventually happens.
+**Unblocked 2026-09-24.** Access was provisioned and a token obtained, and on that occasion the block
+was lifted — on the reading that the approved personal-dashboard use case (D-26), which described
+local storage plainly, implies local persistence. Collection proceeds as designed: the full schema,
+the raw archive, the backfill, no reduced version offered as mitigation.
 
-### D-48 — A second unresolved question narrows what may be collected · **Open**
+State this precisely, because the distinction is the whole content of this entry. The question was
+**asked and went unanswered**, not answered, and provisioning is not a reply to it. Proceeding rests
+on an inference, the inference is unchanged in character from the day it was written, and it is
+recorded in `AGREEMENT.md` as an accepted risk rather than as a resolution. Silence is not treated as
+consent; it is treated as a question that has stopped being likely to get an answer, on a project
+whose alternative was to stay indefinitely unbuilt.
 
-Constraint recorded in `AGREEMENT.md`, not committed. Requested in the same clarification as D-47.
+Filed **Unanswered — proceeding** rather than Resolved for that reason. What would reverse it, and the
+mechanism for doing so, are recorded in `AGREEMENT.md` alongside D-50.
 
-Bears specifically on `player_weekly_stats` and `rosters`, whose scope cannot be settled until it
-is answered. Narrower than D-47 and with survivable answers; kept separate for that reason. D-48
-changes what gets collected, D-47 decides whether anything is.
+### D-48 — A second unanswered question on collection scope, also proceeding · **Unanswered — proceeding** (2026-09-24)
+
+Constraint recorded in `AGREEMENT.md`, not committed. Requested in the same clarification as D-47 and
+likewise never answered.
+
+Bears specifically on `player_weekly_stats` and `rosters`. Narrower than D-47 and with survivable
+answers; kept separate for that reason. D-48 changes what gets collected, D-47 decides whether
+anything is.
+
+**Unblocked 2026-09-24, at full scope.** Both tables are collected as D-11 through D-15 specify —
+every rostered player in all fifteen leagues, every team's roster weekly. Narrower alternatives
+existed and none was taken; they are recorded in `AGREEMENT.md` as the available retreats rather than
+as options already ruled out.
+
+This is the weaker of the two positions and is marked as such. D-47's reading has something concrete
+behind it — an application that described storage and was approved on that description. This one does
+not: the approved use case speaks to comparison across my own leagues, which is where the data comes
+from and is not the same claim. If anything does come back from Yahoo, this is the entry that can be
+complied with by narrowing collection rather than by ending it, which makes it the more likely of the
+two to move.
 
 ### D-49 — Yahoo data pasted into AI tools carries handling obligations · Active
 
@@ -605,8 +633,12 @@ and player names and point totals do not.
 Constraint recorded in `AGREEMENT.md`, not committed, including the list of what a purge must
 cover. `tilasto purge` does not exist; until it does the procedure is manual and documented.
 
-It is the one piece of agreement-driven work **not** blocked by D-47 — it deletes Yahoo data rather
-than writing it — and a literal answer to D-47 would make it the first thing needed.
+It was the one piece of agreement-driven work **not** blocked by D-47 — it deletes Yahoo data rather
+than writing it — and a literal answer to D-47 would have made it the first thing needed.
+
+**2026-09-24.** With D-47 proceeding on an unanswered question, the purge is the mechanism a reversal
+of that decision would run through. Collection starting raises its priority rather than lowering it,
+and enlarges its scope, because the things it covers now hold data.
 
 ### D-51 — A security breach carries a short, externally-set notification deadline · Active
 
@@ -625,7 +657,10 @@ legible, and hiding it to protect one section costs more than it saves. Splittin
 and leaving stubs is the brief's pattern (D-30) and keeps both properties.
 
 What a committed document may say: that a constraint exists, that it is recorded in `AGREEMENT.md`,
-what it blocks, and that an answer is outstanding. It may also carry the milestone dates of the
+what it blocks, that an answer is outstanding — and, since 2026-09-24, that a question was asked and
+went unanswered and that work proceeds on a stated inference rather than on a reply. That last
+extension is deliberately narrow: a stub may say a question existed and was not answered, never what
+the question was. It may also carry the milestone dates of the
 access process itself — applied, approved, signed, awaiting countersignature — which describe a
 process rather than a term, and without which the project status is unreadable. What it may not
 say: any clause text, clause number, territory, deadline, retention window, or notification
@@ -812,9 +847,12 @@ for development. No ORM: the schema is built on natural keys and upserts written
 
 ## Open
 
-Two further open items, D-47 and D-48, are filed under **The agreement** rather than here, because
-they are unanswered questions put to Yahoo rather than unvalidated design guesses. D-47 blocks all
-collection of Yahoo data and is by some distance the most consequential open item in this file.
+Two further items, D-47 and D-48, are filed under **The agreement** rather than here, because they
+are unanswered questions put to Yahoo rather than unvalidated design guesses. Both were asked on
+2026-09-01, neither was answered, and since 2026-09-24 both read **Unanswered — proceeding**:
+collection runs as designed on an inference about the approved use case. They are the most
+consequential items in this file and they are not closed — an entry that proceeds without its answer
+is still carrying the question.
 
 ### D-33 — Schema is unvalidated against real API responses · Open
 
