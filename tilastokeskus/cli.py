@@ -33,7 +33,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="tilasto",
         description="Fantasy football statistics pipeline for Yahoo NFL redraft leagues.",
-        epilog="Fantasy data provided by Yahoo Fantasy.",
+        epilog="Fantasy data provided by Yahoo Fantasy — https://football.fantasysports.yahoo.com/",
     )
     parser.add_argument("--version", action="version", version=f"tilastokeskus {__version__}")
     parser.add_argument(

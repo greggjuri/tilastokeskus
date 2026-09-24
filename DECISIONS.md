@@ -705,11 +705,40 @@ Nothing committed names a host or an address. Committed documents refer to "the 
 and "the Grafana host" instead. Home network topology is not confidential in the way a credential
 is, but it is free to omit and there is no reason to publish it.
 
-### D-31 — Attribution is required and permanent · Active
+### D-31 — Attribution is required and permanent, and it includes a logo · Active
 
 "Fantasy data provided by Yahoo Fantasy," linking to Yahoo Fantasy, appears in the README and in
 the Grafana dashboard description. Yahoo's API terms require it wherever the data surfaces. It is
 not removed.
+
+**Amended 2026-09-24 — the requirement has a second half that this project has not been meeting.**
+Alongside the attribution line, Yahoo's published attribution requirements call for the official
+Yahoo Fantasy logo to be included wherever Fantasy Sports API information is referenced or used.
+Only the text half was ever implemented. Recording it here rather than quietly adding an image,
+because the logo comes with usage constraints that outlast whoever adds it.
+
+The constraints, which are the reason this is a decision and not a task: the word marks and logos
+are used **only as provided**. Not rotated, inverted, or animated; not recoloured; no shadows,
+strokes, textures, or other effects; proportions unchanged; no added graphical elements; and never
+combined with other brands or marks.
+
+Two consequences follow, and both cut against ordinary habits in this repository:
+
+- **The asset must be Yahoo's own file, obtained from Yahoo.** "Only as provided" rules out
+  recreating it, tracing it, exporting an approximation, or pulling whatever image a search
+  returns. Until the official asset is in hand the requirement stays unmet, and it is better to
+  record it as unmet than to satisfy it with something that violates the same paragraph.
+- **It cannot be styled to fit.** The usual instinct with a README badge or a dashboard header is
+  to resize, recolour, or sit it alongside other logos until it looks right. Every one of those is
+  specifically prohibited. Whatever layout the logo lands in adapts around it, not the reverse.
+
+Where it is owed: the README, which references the API, and the Grafana dashboard, which is where
+data actually surfaces to a reader (phase 6). The obligation is presently theoretical in the second
+place only because no dashboard exists yet and no data has been collected -- it becomes real the
+same day either does.
+
+This is also one of the few things about the agreement that may be stated publicly, since Yahoo
+requires the attribution to be public (D-52).
 
 ### D-32 — Naming conventions · Active
 

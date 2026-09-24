@@ -383,6 +383,26 @@ Then, in this order, stopping at each step to look at what happened:
 
 ---
 
+## Attribution — outstanding
+
+Yahoo's attribution requirements have two halves and only one is implemented (D-31). The text line
+is everywhere it belongs; the **official logo is nowhere**, and it is owed wherever Fantasy Sports
+API information is referenced or used.
+
+- [ ] **Obtain the official Yahoo Fantasy logo asset from Yahoo.** It must be Yahoo's own file --
+      the requirements say the marks are used *only as provided*, which rules out recreating it,
+      tracing it, or using whatever image a search returns. This is the blocking step, and it is
+      not one to improvise around
+- [ ] Add it to the README alongside the attribution line, unmodified: original colours, original
+      proportions, no effects, not combined with other marks
+- [ ] Add it to the Grafana dashboard when that exists (phase 6), under the same constraints
+
+Currently theoretical in one place only: no dashboard exists and no data has been collected, so
+nothing is being displayed to anyone yet. It stops being theoretical the day either changes, which
+makes this worth closing before phase 6 rather than during it.
+
+---
+
 ## Phase 6 — Grafana
 
 - [ ] Add Postgres as a data source on the Grafana host, connecting as `tilasto_ro` (D-10)
@@ -390,7 +410,7 @@ Then, in this order, stopping at each step to look at what happened:
 - [ ] A `season` template variable defaulting to the current season, and every panel query
       filtered by it — prior-season test data must not leak into dashboards (D-01, amended)
 - [ ] Draft recap panels — real data, available today
-- [ ] Attribution in the dashboard description (D-31)
+- [ ] Attribution in the dashboard description, text and logo both (D-31)
 
 ---
 

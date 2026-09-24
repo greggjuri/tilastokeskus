@@ -304,6 +304,21 @@ Fantasy data provided by [Yahoo Fantasy](https://football.fantasysports.yahoo.co
 Yahoo's API terms require this attribution to be displayed wherever the data surfaces, with a link
 back to Yahoo Fantasy. It appears here and in the Grafana dashboard description. Do not remove it.
 
+**The official Yahoo Fantasy logo is also required** wherever Fantasy Sports API information is
+referenced or used, and is **not yet present here** -- see `TASKS.md`. It is recorded as outstanding
+rather than filled with a substitute, because the same requirements that ask for the logo also
+govern how it may appear:
+
+- Use the word marks and logos **only as provided** -- Yahoo's own asset, not a recreation.
+- Do not rotate, invert, or animate them.
+- Do not change the colours, or the proportions.
+- Do not add shadows, strokes, textures, or other effects.
+- Do not add graphical elements, or combine them with other brands or marks.
+
+The practical reading: the logo is dropped in unmodified and the surrounding layout adapts to it.
+Resizing it to match a badge row, tinting it to fit a dashboard theme, or setting it beside other
+service logos are each specifically prohibited.
+
 This project is not affiliated with, endorsed by, or sponsored by Yahoo, Yahoo Fantasy Sports, the
 NFL, or any of their affiliates. All trademarks belong to their respective owners. Yahoo Fantasy
 data is used here under read-only API access for personal, non-commercial purposes and is not
