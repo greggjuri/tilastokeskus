@@ -227,7 +227,38 @@ contradict each other, and only Yahoo can reconcile them.
 
 So the position is: **no application on this account can call the Fantasy API**, and the three
 hypotheses available from this side — wrong app, wrong client type, missing scope — are each tested
-and eliminated. Two readings remain, and neither is distinguishable from here:
+and eliminated.
+
+**Identified 2026-09-24: this is a platform-wide change, not an account problem.** Yahoo altered the
+Fantasy API access model on or around **2026-07-22**, ending self-serve provisioning and revoking
+access for applications created under the previous flow. Since then every endpoint returns this exact
+error for correctly configured apps whose settings still show the Fantasy Sports permission checked.
+The reported diagnostic signature is precisely what was observed here: the token endpoint returns 200
+while `/fantasy/v2/...` returns 403 — tokens fine, application not approved. Other developers report
+trying the same three fixes attempted above, with the same non-result:
+
+- <https://github.com/uberfastman/yfpy/issues/84>
+- <https://github.com/derekrbreese/fantasy-football-mcp-public/issues/18>
+
+Three consequences worth having written down, because each one contradicts an assumption made earlier
+in this file:
+
+- **There is no Yahoo developer support address or forum.** The access request form is the only
+  channel and Yahoo initiates contact. Any plan here that reads "send Yahoo a message" needs a
+  specific human on an existing thread, not a support queue. The countersignature correspondence
+  (D-46) is the live one; the address in `AGREEMENT.md` is for breach notification only and is the
+  wrong channel for this.
+- **Re-authorizing, re-saving the app, or creating another app does not help.** Confirmed here twice
+  and corroborated externally. Do not spend another round on it.
+- **The public reports are unresolved**, with no published turnaround and no confirmation from anyone
+  who got access working after approval. There is no SLA to measure the wait against.
+
+This project is nonetheless further along than the reports: access here is approved (2026-08-28) and
+the agreement signed (2026-09-01), where those threads are still queued. "Approved but not yet
+provisioned" is consistent with lag on a process Yahoo is visibly still building. The cheap move is
+to retry daily for a week before treating it as stuck.
+
+Two readings remain, and neither is distinguishable from here:
 
 - **Provisioning has not actually taken effect**, whatever the account page indicates. This is the
   reading the evidence favours — the failure is identical across two apps of different types and
@@ -241,7 +272,7 @@ Confidential and Public form, scoped and unscoped, the credentials, the token re
 and the backoff. The 403 arrives from Yahoo with a valid, correctly scoped bearer token attached.
 Everything this project controls works.
 
-**What to put to Yahoo**, since this is now a support question rather than a debugging one. Access was
+**What to put to Yahoo** — on the existing countersignature thread, since no support channel exists. Access was
 approved 2026-08-28 and the agreement signed 2026-09-01, but every application on the account returns
 `403 "This application is not authorized to perform this action."` on every Fantasy endpoint,
 including `/fantasy/v2/game/nfl`. Both client IDs behave identically. `api.login.yahoo.com` accepts
