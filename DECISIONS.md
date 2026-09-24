@@ -741,8 +741,12 @@ no event handlers, no external references, a single brand colour. It is displaye
 attribution section, uniformly scaled and linked back to Yahoo Fantasy.
 
 Provenance is recorded because "only as provided" is a claim about where a file came from, and a
-logo in a repository carries no evidence of its own origin. The Grafana half remains open until
-there is a dashboard (phase 6).
+logo in a repository carries no evidence of its own origin. **Confirmed 2026-09-24: the file came
+directly from Yahoo's own link.** The host is an S3 brand-asset bucket rather than a `yahoo.com`
+domain, which is ordinary for a brand site and is why the hash and the origin are both written down
+here rather than left to be re-derived from a URL later.
+
+The Grafana half remains open until there is a dashboard (phase 6).
 
 Where it is owed: the README, which references the API, and the Grafana dashboard, which is where
 data actually surfaces to a reader (phase 6). The obligation is presently theoretical in the second

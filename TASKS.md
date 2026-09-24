@@ -394,10 +394,10 @@ logo was missing until 2026-09-24 and is now in the README.
 - [x] Added to the README beside the attribution line, uniformly scaled, original colours and
       aspect ratio, no effects, not placed beside other marks, linked back to Yahoo Fantasy
 - [ ] Add it to the Grafana dashboard when that exists (phase 6), under the same constraints
-- [ ] **Confirm the asset host is Yahoo's official brand source.** The file came from an AWS S3
-      bucket rather than a `yahoo.com` domain, which is ordinary for a brand-asset site but is not
-      self-evident from the URL. "Only as provided" is a claim about provenance, so it is worth
-      confirming once rather than assuming
+- [x] **Provenance confirmed 2026-09-24: the asset came directly from Yahoo's own link.** The URL
+      resolves to an S3 brand-asset host rather than a `yahoo.com` domain, which is ordinary for a
+      brand site but not self-evident from the URL alone, so it was worth asking once. It is
+      Yahoo's own file, which is what "only as provided" turns on
 
 ---
 
