@@ -3,8 +3,9 @@
 -- Design notes live in DECISIONS.md; the short version:
 --   * Yahoo keys are the primary keys, stored verbatim including the season-specific
 --     game_key prefix, which is what makes them season-unique.                  (D-11)
---     The game_key integers in the comments below are ILLUSTRATIVE — no real response
---     has been seen yet. Never hardcode one; read it from the league resource.  (D-11, D-33)
+--     game_key is 470 for 2026 and 461 for 2025, confirmed 2026-10-07; the league,
+--     team, and player ids below are illustrative. Never hardcode a game_key; read it
+--     from the league resource.                                                  (D-11, D-33)
 --   * player_key is season-scoped; player_id is the cross-season identity.        (D-12)
 --   * NUMERIC for points, never FLOAT.                                           (D-13)
 --   * TIMESTAMPTZ everywhere; Yahoo's epoch seconds are converted on insert.     (D-14)
@@ -13,7 +14,7 @@
 -- This schema is provisional until validated against real API payloads.          (D-33)
 
 CREATE TABLE leagues (
-    league_key      TEXT PRIMARY KEY,          -- e.g. '461.l.123456' (game_key illustrative)
+    league_key      TEXT PRIMARY KEY,          -- e.g. '470.l.123456' (2026)
     season          INT  NOT NULL,
     name            TEXT NOT NULL,
     num_teams       INT,
@@ -32,7 +33,7 @@ CREATE TABLE leagues (
 CREATE INDEX leagues_season_idx ON leagues (season);
 
 CREATE TABLE teams (
-    team_key        TEXT PRIMARY KEY,          -- e.g. '461.l.123456.t.4' (game_key illustrative)
+    team_key        TEXT PRIMARY KEY,          -- e.g. '470.l.123456.t.4' (2026)
     league_key      TEXT NOT NULL REFERENCES leagues(league_key),
     team_id         INT  NOT NULL,
     name            TEXT NOT NULL,
@@ -44,7 +45,7 @@ CREATE TABLE teams (
 CREATE INDEX teams_league_idx ON teams (league_key);
 
 CREATE TABLE players (
-    player_key      TEXT PRIMARY KEY,          -- e.g. '461.p.31002' — season-scoped, game_key illustrative
+    player_key      TEXT PRIMARY KEY,          -- e.g. '470.p.31002' — season-scoped (2026)
     player_id       INT,                       -- stable across seasons; join on this
     full_name       TEXT NOT NULL,
     position        TEXT,                      -- 'QB','RB','WR','TE','K','DEF'
