@@ -112,8 +112,9 @@ PK: league_key            TEXT        '470.l.123456'
     current_week          INT         source of truth for "what week is it" (D-24a)
     start_week, end_week
   from /settings, not the league resource — NULL until fetched, never defaulted:
-    draft_type            TEXT        'live' observed, in one league only
-    is_auction_draft      BOOLEAN     its own field, not a draft_type value
+    draft_type            TEXT        'live' in all 15
+    is_auction_draft      BOOLEAN     its own field, not a draft_type value;
+                                      '0' in all 15
     playoff_start_week    INT
     settings_fetched_at   TIMESTAMPTZ /settings fetched once per season; NULL = not yet
     tier                  TEXT        presentation only, never affects collection (D-54)
@@ -196,8 +197,8 @@ FK: league_key, player_key
 ```
 PK: (league_key, pick)
 FK: league_key, team_key, player_key
-    round, cost           cost is auction only — unobserved. One league's
-                          settings show a non-auction draft; fourteen unchecked
+    round, cost           cost is auction only — no league is auction
+                          (is_auction_draft '0' in all 15), so cost stays NULL
 NOTE: picks carry only pick, round, team key and player key — no names, so
       players must be populated first
 ```

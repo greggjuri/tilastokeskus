@@ -189,11 +189,11 @@ empty result, everywhere.
 - **Auth failure surfaces immediately.** 401/403 are never retried; a revoked
   refresh token must be visible, not absorbed into a backoff (D-29)
 - **Unobserved cases raise rather than being handled speculatively.** An
-  unexpected value is a bug report, not a branch. But know what was observed:
-  `scoring_type: head` is confirmed across all fifteen leagues, so points scoring
-  is genuinely absent. Draft type and FAAB were read from **one** league's
-  `/settings`. Until all fifteen are read, auction and FAAB are **unverified, not
-  impossible** — a raise built on them could fire on real data
+  unexpected value is a bug report, not a branch. Observed in `/settings` across
+  **all fifteen** leagues (2026-10-08): `scoring_type: head`, `draft_type: live`,
+  `is_auction_draft: 0`, `uses_faab: 0`. Points scoring, auction drafts and FAAB
+  are absent from real data, so those paths may raise. The sample is fifteen
+  leagues in one season — a league joined later is re-checked, not assumed
 - **Every retry is logged** with its response code and applied delay. A backoff
   that silently works is indistinguishable from one that never fired (D-21a)
 - **Exit codes**: 2 for usage errors, 1 for runtime failures
@@ -210,6 +210,9 @@ Observed during the phase 3 spike, 2026-10-07 (D-33).
   empty placeholders and no fixed ordering
 - **Coerce number types explicitly.** The same field is a number in one record
   and a string in the next
+- **Flags arrive as the strings `'0'` and `'1'`** — `is_auction_draft`,
+  `uses_faab`, `uses_playoff` and more. `bool('0')` is `True` in Python, so a
+  flag is compared to `'1'` after coercion, never tested for truthiness
 - **An absent field is not `false`.** `is_owned_by_current_login` is omitted
   entirely on teams you don't own rather than sent as `0`. Assert exactly one
   team per league carries it and fail loudly otherwise — it drives dashboard
@@ -222,6 +225,9 @@ Observed during the phase 3 spike, 2026-10-07 (D-33).
   `draft_picks` can be written
 - **`eligible_positions` includes slots like `W/R/T` and `IR`**, so it cannot
   derive `players.position`
+- **Roster slots differ between leagues.** Fourteen use `QB RB WR TE W/R/T K DEF
+  BN IR`; one adds `Q/W/R/T` and `D`, an individual-defensive-player slot, so
+  that league's players will include positions no other league has
 
 ### Transport
 

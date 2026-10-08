@@ -1055,3 +1055,44 @@ a probe table created after the migration was readable and not writable.
 
 Not changed: `standings`, `matchups` and `player_weekly_stats` remain unvalidated against observed
 payloads. This entry stays **Open** until they are.
+
+**Settings across all fifteen leagues, 2026-10-08.** `/settings` fetched once per league, read-only,
+archived to `raw/2026-10-08/settings/` before parsing; nothing written to the database. League keys
+came from the 2026-10-07 archive, so exactly fifteen requests were issued.
+
+| Field | Distribution over 15 |
+|---|---|
+| `draft_type` | `live` × 15 |
+| `is_auction_draft` | `'0'` × 15 |
+| `uses_faab` | `'0'` × 15 (`waiver_type` `R` × 15) |
+| `scoring_type` | `head` × 15 |
+| `playoff_start_week` | `'16'` × 15 (`num_playoff_teams` `'4'` × 15) |
+| `num_teams` | `10` × 15 (`max_teams` `'10'` × 15) |
+
+**No league is auction and none uses FAAB.** Finding 4 is now settled for this season: auction and
+FAAB are absent from real data, alongside points scoring, so those paths may raise. All fifteen are
+confirmed ten-team leagues. One league ratifies trades by `vote`; the others by `yahoo`.
+
+Shape hazards:
+
+- **Flags are the strings `'0'` and `'1'`** — `is_auction_draft`, `uses_faab`, `uses_playoff`,
+  `uses_fractional_points` and others. `bool('0')` is `True`; a truthiness test reads every league as
+  an auction league. Compare against `'1'` after coercion
+- **Numerics as strings, consistently per field but not between fields**: `num_teams` is an int
+  while `max_teams`, `playoff_start_week`, `start_week`, `end_week`, `season` and the draft and
+  waiver times are strings. No field varied in type across the fifteen
+- **Absent rather than defaulted**: `short_invitation_url` (league metadata) and `invite_permission`
+  (settings) appear in one league each. Everything else is present in all fifteen
+- **Positional**: the league resource is a two-element list, metadata then `{settings: [ {...} ]}`,
+  identical in all fifteen — but find `settings` by key, not by index
+- **Roster slots differ.** Fourteen leagues use `QB RB WR TE W/R/T K DEF BN IR`. One adds `Q/W/R/T`
+  (superflex) and `D` (an individual defensive player), so its players will carry defensive
+  positions that `players.position` has not seen
+
+Pacing, the first loop larger than the eleven-request spike: fifteen GETs, all `200`; fourteen pacer
+sleeps totalling 11.6s; an empty retry log; 13.7s wall clock. Thirteen of the fourteen
+start-to-start gaps met the 1.0s interval; one was 0.62s. The pacer marks the start of an attempt, and the
+first attempt also refreshes the token before its GET, so the gap to the next Fantasy API call
+shrinks by the refresh time — reproduced against a fake session (gaps `0.6, 1.0, 1.0` with a 0.4s
+refresh). Nothing throttled, which says the limiter is still untested against a real 999 or 429,
+not that it works.

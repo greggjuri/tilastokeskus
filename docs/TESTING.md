@@ -223,11 +223,10 @@ invalidates every derived number in the dashboard.
   way to test the migration and the purge
 - **Prior seasons are available** as complete, static, real test data if ever
   needed (D-17), subject to the collection scope decisions
-- **Unobserved cases have no fixtures.** Points scoring is absent from all
-  fifteen leagues (`scoring_type: head` in every one), and the code raises on it
-  rather than branching speculatively. Auction drafts and FAAB were checked in
-  **one** league only — unverified, not impossible. Whether they raise or are
-  handled waits on the fifteen-league `/settings` distribution
+- **Unobserved cases have no fixtures.** Points scoring, auction drafts and
+  FAAB are absent from all fifteen leagues' `/settings` (2026-10-08), and the
+  code raises on them rather than branching speculatively. Test the raise, with
+  a fixture edited from an archived payload — not the branch that isn't there
 
 ### Cleanup
 ```bash

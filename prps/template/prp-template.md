@@ -222,10 +222,9 @@ tilasto apicheck          # confirm auth is live before anything else
 ### Edge Cases
 - {Edge case}: {how handled}
 - **Unobserved cases raise rather than branch** — once they are confirmed
-  absent from real data. Points scoring: absent in all fifteen. Auction and
-  FAAB: checked in one league only, so unverified rather than impossible. State
-  the sample behind every "never happens". An unexpected value is a bug report,
-  not a code path
+  absent from real data. Points scoring, auction drafts and FAAB: absent from
+  all fifteen leagues' `/settings`. State the sample behind every "never
+  happens". An unexpected value is a bug report, not a code path
 
 ### Silence Check
 The characteristic failure here is a run that succeeds and writes nothing.

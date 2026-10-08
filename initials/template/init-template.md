@@ -76,9 +76,10 @@ looks much like a quiet week in the data. State explicitly:
 - **What this does when it cannot do its job.** Raises, with what message?
   Never an empty return where a raise belongs (D-38)
 - **What is unobserved and therefore unhandled**, and how widely it was looked
-  for. Points scoring is absent from all fifteen leagues; auction drafts and
-  FAAB were checked in one. A path that raises must be one real data cannot
-  reach — "unobserved in one league" is not "absent from fifteen"
+  for. Points scoring, auction drafts and FAAB are absent from all fifteen
+  leagues' `/settings`. A path that raises must be one real data cannot reach —
+  state the sample behind it: "unobserved in one league" is not "absent from
+  fifteen"
 - **What a partial run leaves behind**, and whether re-running fixes it (it
   should — every write is an idempotent upsert, D-19)
 

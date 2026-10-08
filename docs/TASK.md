@@ -21,11 +21,6 @@ the largest build in the project (the collectors) rather than after.
 
 ### Up Next
 
-- [ ] Fetch `/settings` for all fifteen leagues and record the real distribution
-      of `draft_type`, `is_auction_draft` and `uses_faab` — one call per league,
-      and the settings fetch is being built for `leagues` anyway. Gates how the
-      collector treats auction and FAAB: handled or raised is decided by this,
-      not by one league
 - [ ] `init-01-collector.md` - Phase 4: leagues → teams → players →
       draft_picks → rosters, in foreign-key order, idempotent upserts
 
@@ -51,6 +46,14 @@ Phases 0–3 predate the CE workflow and have no specs.
 ---
 
 ## Recently Completed
+
+### Phase 3 — Settings across all fifteen leagues (2026-10-08)
+- [x] `/settings` fetched for all fifteen, archived to `raw/2026-10-08/settings/`
+      before parsing. Nothing written to the database
+- [x] All fifteen: `draft_type: live`, `is_auction_draft: 0`, `uses_faab: 0`,
+      `scoring_type: head`, ten teams, playoffs from week 16 with four teams.
+      **No auction, no FAAB** — those paths may raise (D-33)
+- [x] First fifteen-request loop: 14 pacing sleeps, no throttling, no retries
 
 ### Phase 3 — First contact with the API (2026-10-07)
 - [x] Yahoo API access live on the Confidential Client after a ~10-week process
@@ -229,11 +232,18 @@ $0/month. The budget is **request volume**, not money — see `docs/PLANNING.md`
   a parse-by-name helper
 - **The spike script lives only in a scratchpad**, deliberately, since parsing
   code was not yet in scope. It will need rewriting as real collector code
-- **Points scoring is unobserved** — `scoring_type: head` in all fifteen — so
-  those paths raise rather than branch speculatively
-- **Auction drafts and FAAB are unverified, not impossible.** Draft type and
-  `uses_faab` were read from one league's `/settings`; the other fourteen are
-  unchecked. See Up Next — until it lands, nothing may raise on them
+- **Points scoring, auction drafts and FAAB are absent** from all fifteen
+  leagues' `/settings` (2026-10-08), so those paths raise rather than branch
+  speculatively
+- **The pacer spaces attempts, not API calls.** The token refresh runs inside
+  an attempt, after the pacer's mark, so the gap before the next Fantasy API
+  call shrinks by the refresh time: 0.62s observed once on 2026-10-08, against
+  a 1.0s interval; the mechanism reproduced against a fake session. Once an hour, on
+  refresh. Low impact; fix by marking the pacer after the token is in hand
+- **One league uses `Q/W/R/T` and `D` roster slots** — superflex and an
+  individual defensive player. The schema comment on `players.position` lists
+  only offensive positions and `DEF`; that league's defensive players are
+  unobserved
 
 ---
 
