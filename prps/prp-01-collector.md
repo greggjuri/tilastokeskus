@@ -3,7 +3,7 @@
 **Created**: 2026-10-08
 **Initial**: `initials/init-01-collector.md`
 **Phase**: Phase 4 — Collector
-**Status**: Ready
+**Status**: Complete (2026-10-08)
 
 > Filename: `prps/prp-01-collector.md` — the number and slug are inherited from
 > the init spec, never chosen independently. Numbers are assigned in the order

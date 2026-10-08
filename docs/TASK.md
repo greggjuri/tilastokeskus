@@ -7,7 +7,6 @@ the largest build in the project (the collectors) rather than after.
 
 ### In Progress
 
-- [ ] `init-01-collector.md` — executing `prps/prp-01-collector.md`
 - [ ] CE retrofit — `CLAUDE.md`, `docs/PLANNING.md`, `docs/TESTING.md`,
       `initials/template/`, `prps/template/` and `.claude/commands/` written;
       `docs/TASK.md` is this file. `examples/` still to come.
@@ -22,9 +21,9 @@ the largest build in the project (the collectors) rather than after.
 
 ### Up Next
 
-- [ ] `init-01-collector.md` - Phase 4: collection infrastructure, `leagues`
-      and `teams`. PRP ready (`prps/prp-01-collector.md`, 8.8). Players, draft
-      picks and rosters follow in `init-02`
+- [ ] `{collector}` - init-02: `players`, `draft_picks`, `rosters` on the PRP-01
+      machinery. Not yet claimed — claim `02` from Spec Numbering when taken up
+- [ ] Give the transport a request timeout — see Known Issues
 
 ---
 
@@ -41,13 +40,28 @@ record that something was tried and dropped.
 
 | nn | Slug | Init | PRP | Status |
 |----|------|------|-----|--------|
-| 01 | collector | [init](../initials/init-01-collector.md) | [PRP](../prps/prp-01-collector.md) | PRP ready, 8.8 — open questions answered |
+| 01 | collector | [init](../initials/init-01-collector.md) | [PRP](../prps/prp-01-collector.md) | **Complete** 2026-10-08 |
 
 Phases 0–3 predate the CE workflow and have no specs.
 
 ---
 
 ## Recently Completed
+
+### PRP-01 — Collection infrastructure, leagues and teams (2026-10-08)
+- [x] Raw archive, gzipped, one directory per run, written before parsing (D-20)
+- [x] Strict parsers for discovery, league metadata, settings and teams, against
+      redacted fixtures from the archive; mutation-checked
+- [x] Idempotent upserts; settings and `tier` never overwritten by a metadata run
+- [x] Per-league transactions; success / partial / failed with the Silence
+      Check; only success exits 0 (D-56)
+- [x] Discovery resolves game key and leagues in one call; `/league/{key}` and
+      `/game/nfl` dropped (D-57)
+- [x] Live: one league twice (3 then 2 requests), then all fifteen twice (30
+      then 16 requests). 15 leagues, 150 teams, exactly one owned per league;
+      re-runs change no counts. No retries, no throttling in 50 requests
+- [x] Collect timer re-enabled; first scheduled run 2026-10-09 00:11
+- [x] 316 tests, 91% coverage, ruff clean
 
 ### Phase 3 — Teams across all fifteen leagues (2026-10-08)
 - [x] Read-only `/teams` probe of all fifteen, archived to `raw/2026-10-08/teams/`;
@@ -232,10 +246,15 @@ $0/month. The budget is **request volume**, not money — see `docs/PLANNING.md`
 
 ### Known Issues
 
-- **The collect timer is disabled (2026-10-08, PRP-01 Step 0).** Once the
-  collector works, the next timer run would be an unescalated fifteen-league
-  sweep (D-21a). Re-enable with `systemctl --user enable --now
-  tilastokeskus-collect.timer` only after PRP-01 Steps 9 and 10 pass
+- **The transport has no request timeout.** The first fifteen-league run spent
+  135s between starting and receiving its discovery response — inside the token
+  refresh or the discovery GET, uninstrumented, so which one is unknown. Yahoo
+  answered and the run succeeded, but a request that never answers would hang
+  until systemd's 30-minute `TimeoutStartSec`. `apicheck` sets a timeout; the
+  transport's `session.get` and token `post` do not. Decide the value and how a
+  timeout is classified (league failure vs run abort) before fixing
+- **The first scheduled collection is 2026-10-09 00:11.** Check the journal and
+  `collector_runs` the next morning — the timer path has not run the collector
 - **Discord webhook URL leaked into a chat transcript** during the spike. Rotate
   it: delete in Discord, create a new one, update `.env`. Write-only to one
   channel, so the blast radius is spam, but rotate anyway
@@ -246,8 +265,6 @@ $0/month. The budget is **request volume**, not money — see `docs/PLANNING.md`
 - **`examples/` is referenced by `CLAUDE.md` and `docs/PLANNING.md` but does not
   exist.** Needs at least one real pattern — the upsert shape, the retry policy,
   a parse-by-name helper
-- **The spike script lives only in a scratchpad**, deliberately, since parsing
-  code was not yet in scope. It will need rewriting as real collector code
 - **Points scoring, auction drafts and FAAB are absent** from all fifteen
   leagues' `/settings` (2026-10-08), so those paths raise rather than branch
   speculatively
