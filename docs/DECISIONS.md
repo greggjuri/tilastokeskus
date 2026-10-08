@@ -1096,3 +1096,8 @@ first attempt also refreshes the token before its GET, so the gap to the next Fa
 shrinks by the refresh time — reproduced against a fake session (gaps `0.6, 1.0, 1.0` with a 0.4s
 refresh). Nothing throttled, which says the limiter is still untested against a real 999 or 429,
 not that it works.
+
+**Fixed the same day.** The transport now takes the token, then waits on the pacer, then sends, so
+the interval holds between Fantasy API calls. A retry is paced the same way, and an elapsed
+backoff still counts toward the gap rather than stacking on it. The refresh itself, to the login
+host, is not paced.

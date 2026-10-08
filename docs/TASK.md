@@ -54,6 +54,9 @@ Phases 0–3 predate the CE workflow and have no specs.
       `scoring_type: head`, ten teams, playoffs from week 16 with four teams.
       **No auction, no FAAB** — those paths may raise (D-33)
 - [x] First fifteen-request loop: 14 pacing sleeps, no throttling, no retries
+- [x] **Pacer gap fixed.** The transport now takes the token, then paces, then
+      sends — so a refresh no longer shortens the gap to the next API call.
+      Regression test fails on the old code (`[0.6, 1.0]`) and passes on the new
 
 ### Phase 3 — First contact with the API (2026-10-07)
 - [x] Yahoo API access live on the Confidential Client after a ~10-week process
@@ -235,11 +238,6 @@ $0/month. The budget is **request volume**, not money — see `docs/PLANNING.md`
 - **Points scoring, auction drafts and FAAB are absent** from all fifteen
   leagues' `/settings` (2026-10-08), so those paths raise rather than branch
   speculatively
-- **The pacer spaces attempts, not API calls.** The token refresh runs inside
-  an attempt, after the pacer's mark, so the gap before the next Fantasy API
-  call shrinks by the refresh time: 0.62s observed once on 2026-10-08, against
-  a 1.0s interval; the mechanism reproduced against a fake session. Once an hour, on
-  refresh. Low impact; fix by marking the pacer after the token is in hand
 - **One league uses `Q/W/R/T` and `D` roster slots** — superflex and an
   individual defensive player. The schema comment on `players.position` lists
   only offensive positions and `DEF`; that league's defensive players are

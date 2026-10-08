@@ -272,6 +272,7 @@ point totals.
 |-----|------------|------------|
 | Retry layer would never have fired | Yahoo's 999 throttle arrives as a non-error status, and `raise_for_status()` only raises for 400–599 | Key retry logic off `(status, payload)`, never exceptions |
 | `yahoofantasy` login broken | Library calls `ssl.wrap_socket`, removed in Python 3.12 | Verify third-party libraries import *and run* on the target interpreter |
+| One API-call gap of 0.62s against a 1.0s interval (2026-10) | The pacer marked the start of an attempt, and a token refresh inside the attempt then ate into the gap. The existing pacing test never refreshed a token mid-run | Pace immediately before the wire call; test gaps between the calls themselves, with a fake clock that the refresh advances |
 
 ### Schema / Postgres (2026-09)
 
