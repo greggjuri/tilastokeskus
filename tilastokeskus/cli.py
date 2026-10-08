@@ -167,10 +167,11 @@ def cmd_collect(args: argparse.Namespace, season: int) -> int:
 
 def dry_run(plan: CollectionPlan, client, settings) -> int:
     """One request — discovery, archived (D-20) — then the plan. No row and no run is written."""
-    from .collect import select_leagues
+    from .collect import require_buildable, select_leagues
     from .parse import parse_discovery
     from .store import leagues_needing_settings
 
+    require_buildable(plan)              # a dry run refuses exactly what a run would refuse
     discovery = parse_discovery(client.discover(plan.season), plan.season)
     keys = select_leagues(discovery.league_keys, plan.league_keys)
     with connect(settings) as conn:

@@ -120,6 +120,14 @@ def select_leagues(discovered: list[str], requested: list[str] | None) -> list[s
     return list(dict.fromkeys(requested))
 
 
+def require_buildable(plan: CollectionPlan) -> None:
+    """Refuse scopes whose tables are not collected yet — before any request, dry run included."""
+    if plan.weeks is not None or plan.draft_only:
+        raise NotImplementedError(
+            "--weeks and --draft-only collect week-scoped and draft tables, which do not exist "
+            "yet: draft picks are init-02, backfill is phase 5. See docs/TASK.md.")
+
+
 def collect_league(conn: psycopg.Connection, client: YahooClient, league_key: str,
                    season: int, fetch_settings: bool) -> int:
     """Fetch, archive and parse everything for one league, then write it. Returns rows written.
@@ -162,11 +170,7 @@ def run(plan: CollectionPlan, client: YahooClient, conn: psycopg.Connection,
     and anything before the league loop. An unknown ``--league`` raises without recording: it is
     a usage error, not a run.
     """
-    if plan.weeks is not None or plan.draft_only:
-        raise NotImplementedError(
-            "--weeks and --draft-only collect week-scoped and draft tables, which do not exist "
-            "yet: draft picks are init-02, backfill is phase 5. See docs/TASK.md.")
-
+    require_buildable(plan)
     result = RunResult(started_at=started_at or datetime.now(UTC))
     try:
         discovery = parse_discovery(client.discover(plan.season), plan.season)

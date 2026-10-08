@@ -116,3 +116,11 @@ def test_unbuilt_scope_exits_one_before_any_request(wired, capsys):
     assert cli.main(["collect", "--all", "--backfill", "--weeks", "1-3"]) == cli.EXIT_ERROR
     assert client.calls == []
     assert "phase 5" in capsys.readouterr().err
+
+
+def test_dry_run_refuses_an_unbuilt_scope_before_any_request(wired, capsys):
+    client, _db = wired
+    assert cli.main(["collect", "--all", "--backfill", "--weeks", "1-3", "--dry-run"]) == \
+        cli.EXIT_ERROR
+    assert client.calls == []
+    assert "requests issued: 0" in capsys.readouterr().out
