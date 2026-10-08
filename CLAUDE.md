@@ -29,7 +29,7 @@ tilasto migrate
 # Collection
 tilasto leagues                                   # list discovered league keys
 tilasto collect --all                             # full run, current week
-tilasto collect --backfill --weeks 1-5 --dry-run  # show the plan, issue nothing
+tilasto collect --all --dry-run                   # one discovery request, then the plan
 tilasto status                                    # last run, row counts, staleness
 
 # Operational
@@ -327,8 +327,11 @@ disproportionate if it draws throttling or review.
 - **Backfill escalates, never opens wide**: one league / two-to-three weeks →
   read the retry log → one league / full season → re-run to prove idempotency →
   only then widen (D-21a)
-- `--dry-run` prints the plan and issues nothing. It deliberately does not
-  estimate request counts
+- `--dry-run` issues exactly one request — discovery, archived like any other —
+  then prints the league keys and the planned request count. It writes no row
+  and no `collector_runs` entry. A plan that cannot name the real leagues is
+  barely a plan, so it costs one call (PRP-01)
+- Every collection prints the requests it issued and the retry log, empty or not
 - Nothing throttling is a data point, not a pass — it means the limiter is
   untested, not that it works
 

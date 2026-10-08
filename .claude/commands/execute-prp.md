@@ -73,7 +73,7 @@ escalates rather than sweeping (D-21a).
 
 ```bash
 tilasto apicheck                                    # auth live?
-tilasto {command} --dry-run                         # plan only, nothing issued
+tilasto {command} --dry-run                         # plan only; one discovery request
 tilasto {command} --league {one key} --weeks {2-3}  # smallest real run
 ```
 

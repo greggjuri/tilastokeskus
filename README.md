@@ -168,7 +168,7 @@ Because every table is keyed by week and fetchable retroactively, catching up is
 rather than a recovery procedure:
 
 ```bash
-tilasto collect --backfill --weeks 1-10 --dry-run   # show the plan, issue nothing
+tilasto collect --backfill --weeks 1-10 --dry-run   # one discovery request, then the plan
 tilasto collect --backfill --weeks 1-10             # completed weeks, all leagues
 tilasto collect --backfill --weeks 1-3 --league KEY # one league, a few weeks
 tilasto collect --backfill --season 2025            # a prior season, if Yahoo still has it

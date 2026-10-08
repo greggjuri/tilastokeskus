@@ -102,7 +102,8 @@ mistake that produced ten corrections in one spike (D-33).
 tilasto {subcommand} [--flags]
 ```
 - Exit codes: 2 usage, 1 runtime
-- `--dry-run` for anything that issues requests: prints the plan, issues nothing
+- `--dry-run` for anything that issues requests: one discovery request, then the
+  plan and its request count; writes nothing
 
 ---
 
@@ -196,7 +197,7 @@ tilasto apicheck          # confirm auth is live before anything else
 ### Test Steps
 | Step | Action | Expected Result | Pass? |
 |------|--------|-----------------|-------|
-| 1 | `tilasto {cmd} --dry-run` | plan printed, no request issued | ☐ |
+| 1 | `tilasto {cmd} --dry-run` | plan printed, one request issued, nothing written | ☐ |
 | 2 | {Action} | {Expected} | ☐ |
 | 3 | Re-run step 2 | identical row counts | ☐ |
 | 4 | Compare against Yahoo's displayed values | exact match | ☐ |

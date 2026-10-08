@@ -536,6 +536,42 @@ Daily is also a better fit for what the data is for. A weekly matchup does not c
 09:00 and 10:00 in any way a dashboard question depends on, and the questions this project exists
 to answer (D-01) are asked across a season, not across an afternoon.
 
+### D-56 — A run commits league by league, and only a complete run exits 0 · Active
+
+Decided in PRP-01 (2026-10-08). A collection run fetches, archives and parses everything for one
+league, then writes it in that league's own transaction, on an autocommit connection. A league that
+fails — an unobserved value, a shape that does not parse, a constraint violation — is rolled back
+on its own, recorded with its key, and skipped. The leagues before it stay committed.
+
+Status follows: **success** when every planned league committed; **partial** when some did and
+some did not; **failed** when none did, when anything before the league loop failed, or when a
+run that otherwise "succeeded" wrote no rows. That last rule is the Silence Check: fifteen leagues
+are known to exist, so zero rows means something broke upstream of the database.
+
+`tilasto collect` exits 0 only for success. Partial and failed both exit 1, so a timer run that
+left a league uncollected shows as failed in systemd rather than green.
+
+Three failures are not one league's and abort the run, after it is recorded: authentication
+(fifteen identical auth failures are one failure, D-29), exhausted backoff (stopping is the point
+of the limit, D-21), and a lost database connection. An unknown `--league` is a usage error, exits
+2, and records no run.
+
+### D-57 — League metadata comes from the teams payload; discovery resolves the game key · Active
+
+Decided in PRP-01 (2026-10-08), from the archive. League metadata — `current_week`, name, weeks,
+scoring type — is present in the discovery payload and as the first element of every
+`/league/{key}/teams` and `/settings` response, in all fifteen leagues. `/league/{key}` is
+therefore not called: it would be fifteen redundant requests a day. The teams payload is the
+source, because it is fetched every run and keeps each league's write self-contained.
+
+Discovery uses `/users;use_login=1/games;game_codes=nfl;seasons={season}/leagues`, which returns
+the season's game key and the user's league keys in one request, for any season. Observed for 2025
+on 2026-10-08 and confirmed live for 2026 in PRP-01 Step 5. `/game/nfl` is not called. The game
+key is still read, never hardcoded (D-11), and every league key is checked against it.
+
+`--dry-run` issues exactly that one request, archived like any other (D-20), and writes nothing
+else. The previous convention — "issues nothing" — could not name the real leagues.
+
 ---
 
 ## Auth and credentials

@@ -67,7 +67,7 @@ draws throttling or review.
 1. Exponential backoff on 999 and 429, with a conservative inter-request delay (D-21, D-21a)
 2. One cadence, daily — fifteen leagues once per day is the steady-state volume (D-53)
 3. Raw archive, so a parsing bug costs a re-parse rather than a re-fetch (D-20)
-4. `--dry-run` prints the plan and issues nothing
+4. `--dry-run` issues one discovery request, prints the plan with its request count, and writes nothing
 5. Backfill escalates rather than opening wide (D-21a)
 
 ## Tech Stack
@@ -237,17 +237,17 @@ Read-only. No endpoints are exposed by this project.
 
 | Resource | Path | Notes |
 |---|---|---|
-| Game | `/game/nfl` | resolves current season's game_key (470 for 2026) |
-| Game by season | `/games;game_codes=nfl;seasons={yyyy}` | never hardcode the key |
-| User leagues | `/users;use_login=1/games;game_keys={gk}/leagues` | 15 keys returned |
-| League | `/league/{league_key}` | carries `current_week` (D-24a) |
-| Settings | `/league/{league_key}/settings` | `draft_type`, `playoff_start_week` |
-| Teams | `/league/{league_key}/teams` | |
+| Discovery | `/users;use_login=1/games;game_codes=nfl;seasons={yyyy}/leagues` | game key **and** league keys in one call, any season (D-57) |
+| Settings | `/league/{league_key}/settings` | `draft_type`, `is_auction_draft`, `playoff_start_week`; first collection only |
+| Teams | `/league/{league_key}/teams` | carries the league metadata, `current_week` included (D-24a, D-57) |
 | Standings | `/league/{league_key}/standings` | |
 | Scoreboard | `/league/{league_key}/scoreboard;week={n}` | matchups |
 | Draft | `/league/{league_key}/draftresults` | one-shot per season |
 | Transactions | `/league/{league_key}/transactions` | |
 | Roster | `/team/{team_key}/roster;week={n}` | week param is what makes backfill possible (D-17) |
+
+Not called: `/league/{league_key}` and `/game/nfl` — the first's metadata arrives
+with every teams payload, the second's game key with discovery (D-57).
 
 ### Authentication
 OAuth 2.0, Confidential Client, redirect `https://localhost:8000`. Access tokens

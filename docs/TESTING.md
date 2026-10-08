@@ -288,6 +288,13 @@ point totals.
 | Schema assumed JSON and fixed field positions | Designed from documentation, not observed payloads | Fixtures come from the raw archive; parse by name |
 | `461` recorded as the 2026 game key | A real key attached to the wrong season | Never hardcode a game key; read it from the league resource |
 
+### Collector (2026-10)
+
+| Bug | Root Cause | Prevention |
+|-----|------------|------------|
+| `client.settings(key)` called a `Settings` object | `YahooClient.__init__` stored the app config as `self.settings`, and an instance attribute shadows a method of the same name | A test per public method that calls it, not only checks it exists. The completeness test (every public method has a row) is what made the call happen |
+| A dry run with `--weeks` planned a run that would be refused | The unbuilt-scope check lived only in `run()`; the dry run had its own path | One `require_buildable()` called by both paths. A dry run must refuse exactly what the run refuses |
+
 ### Documentation (2026-10)
 
 The first entries whose root cause is a claim in prose rather than code — which
