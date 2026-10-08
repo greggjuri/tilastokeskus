@@ -178,21 +178,24 @@ class YahooTransport:
         url = f"{API_ROOT}/{path.lstrip('/')}"
 
         def attempt() -> tuple[int, Any]:
+            # Token first, pacing second: the interval is between Fantasy API calls, so a token
+            # refresh must not run after the pacer's mark and eat into the gap (D-33, 2026-10-08).
+            # The refresh goes to the login host and is not itself paced.
+            token = self.access_token()
+            self.pacer.wait()
             response = self.session.get(
                 url,
-                headers={
-                    "Authorization": f"Bearer {self.access_token()}",
-                    "Accept": "application/json",
-                },
+                headers={"Authorization": f"Bearer {token}", "Accept": "application/json"},
                 params={"format": "json", **params},
             )
             return response.status_code, response
 
+        # The pacer is applied inside attempt(), immediately before the request, rather than
+        # handed to call_with_backoff, which would mark it before the token is in hand.
         return call_with_backoff(
             attempt,
             self.policy,
             sleep=self._sleep,
             headers_of=lambda response: getattr(response, "headers", None),
             log=self.retry_log,
-            pacer=self.pacer,
         )

@@ -8,6 +8,7 @@ Nothing here touches the network — the session is injected.
 """
 
 import pickle
+from itertools import pairwise
 
 import pytest
 
@@ -254,3 +255,62 @@ def test_pacing_is_applied_between_requests():
     t.get("b")
     t.get("c")
     assert slept == [1.5, 1.5]
+
+
+def test_token_refresh_does_not_shorten_the_gap_between_api_calls():
+    """The interval is measured between Fantasy API calls, not between attempts.
+
+    A refresh inside the first attempt once ran after the pacer's mark, so the next call
+    followed 0.62s after it against a 1.0s interval (D-33, 2026-10-08).
+    """
+    now = [0.0]
+    get_times = []
+
+    def sleep(seconds):
+        now[0] += seconds
+
+    class SlowRefreshSession(FakeSession):
+        def post(self, url, **kwargs):
+            now[0] += 0.4                      # token endpoint round trip
+            return super().post(url, **kwargs)
+
+        def get(self, url, **kwargs):
+            get_times.append(now[0])
+            now[0] += 0.1                      # API round trip
+            return super().get(url, **kwargs)
+
+    t = YahooTransport(
+        settings(), policy=BackoffPolicy(request_interval=1.0, jitter=0.0),
+        session=SlowRefreshSession(), sleep=sleep, monotonic=lambda: now[0], now=lambda: 1000.0,
+    )
+    for path in ("a", "b", "c"):
+        t.get(path)
+
+    gaps = [later - earlier for earlier, later in pairwise(get_times)]
+    assert gaps == pytest.approx([1.0, 1.0])
+
+
+def test_pacing_applies_to_retries_as_well():
+    """A retry is an API call too: backoff and pacing together never put two calls closer
+    than the interval, and an elapsed backoff is not stacked on top of it."""
+    now = [0.0]
+    get_times, slept = [], []
+
+    def sleep(seconds):
+        slept.append(seconds)
+        now[0] += seconds
+
+    class ClockedSession(FakeSession):
+        def get(self, url, **kwargs):
+            get_times.append(now[0])
+            return super().get(url, **kwargs)
+
+    session = ClockedSession(get_responses=[FakeResponse(999), FakeResponse(200, {"ok": 1})])
+    t = YahooTransport(
+        settings(), policy=BackoffPolicy(base_delay=2.0, request_interval=1.0, jitter=0.0),
+        session=session, sleep=sleep, monotonic=lambda: now[0], now=lambda: 1000.0,
+    )
+    t.get("a")
+
+    assert get_times == [0.0, 2.0]
+    assert slept == [2.0]                      # backoff only; the elapsed 2.0s covers the interval
