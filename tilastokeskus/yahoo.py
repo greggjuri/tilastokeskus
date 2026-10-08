@@ -18,7 +18,7 @@ from __future__ import annotations
 from .config import Settings
 
 
-class YahooAccessPending(NotImplementedError):
+class YahooCollectorNotImplemented(NotImplementedError):
     """Raised by every call here until the phase 4 collectors implement it."""
 
     def __init__(self, operation: str) -> None:
@@ -33,25 +33,25 @@ class YahooClient:
         self.settings = settings
 
     def league_keys(self, season: int) -> list[str]:
-        raise YahooAccessPending("listing league keys")
+        raise YahooCollectorNotImplemented("listing league keys")
 
     def league(self, league_key: str) -> dict:
-        raise YahooAccessPending("fetching a league")
+        raise YahooCollectorNotImplemented("fetching a league")
 
     def teams(self, league_key: str) -> list[dict]:
-        raise YahooAccessPending("fetching teams")
+        raise YahooCollectorNotImplemented("fetching teams")
 
     def draft_results(self, league_key: str) -> list[dict]:
-        raise YahooAccessPending("fetching draft results")
+        raise YahooCollectorNotImplemented("fetching draft results")
 
     def roster(self, team_key: str, week: int) -> list[dict]:
-        raise YahooAccessPending("fetching a roster")
+        raise YahooCollectorNotImplemented("fetching a roster")
 
     def standings(self, league_key: str, week: int) -> list[dict]:
-        raise YahooAccessPending("fetching standings")
+        raise YahooCollectorNotImplemented("fetching standings")
 
     def scoreboard(self, league_key: str, week: int) -> list[dict]:
-        raise YahooAccessPending("fetching a scoreboard")
+        raise YahooCollectorNotImplemented("fetching a scoreboard")
 
     def transactions(self, league_key: str) -> list[dict]:
-        raise YahooAccessPending("fetching transactions")
+        raise YahooCollectorNotImplemented("fetching transactions")
