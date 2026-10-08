@@ -215,9 +215,9 @@ always safe.
 
 ## Daily API access check
 
-Yahoo approved API access for this project but every application on the account is still refused at
-the API itself. That is a state on Yahoo's side which can change without notice, so it is checked
-once a day rather than by remembering to retry.
+Built while Yahoo had approved API access for this project but still refused every application on
+the account at the API itself. Access went live on 2026-10-07 and the daily timer has been turned
+off; the command remains for checking by hand, and the timer can be re-enabled if access is lost.
 
 ```bash
 tilasto apicheck             # probe, then post the result to Discord
@@ -397,8 +397,8 @@ verified.
 
 The collectors themselves are stubs — they need real API payloads to be written against, and every
 one of them fails with an explicit message rather than returning empty data. The transport and
-limiter are verified against fakes only; nothing here has yet been exercised against Yahoo itself.
-That is the next step (`TASKS.md`, phase 3).
+limiter were exercised against Yahoo itself in the phase 3 read-only spike on 2026-10-07; the
+collectors are next (`docs/TASK.md`).
 
 Season timing note: draft results and rosters are available now; matchup and scoring data begins
 populating in week 1. Early development targets draft and roster data, which is static and

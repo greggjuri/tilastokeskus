@@ -7,7 +7,7 @@ useful later than the conclusion that replaced it.
 Status values: **Active** · **Superseded** · **Open** (decided in principle, but not yet validated
 against real data or an answer that has been asked for and not received).
 
-Last updated 2026-09-24.
+Last updated 2026-10-07.
 
 ---
 
@@ -140,16 +140,18 @@ That prefix is what makes keys season-unique, so normalizing it to a friendlier 
 silently collide 2026 with 2027 on the primary key. Documentation that writes `nfl.l.123456` is
 using shorthand, not the real key format.
 
-**The specific integers in these documents are illustrative and unverified.** `461` for 2026 and
-`449` for 2025 are plausible-looking examples, not confirmed values — nobody has yet seen a real
-response. Never hardcode a game key. Read it from the league resource, or derive league keys from
-Yahoo's own game-key lookup. The phase 3 spike confirms the real values, and the examples here are
-corrected then.
+**Confirmed 2026-10-07 by the phase 3 spike: `470` is 2026 and `461` is 2025.** Read from
+`/game/nfl` and `/games;game_codes=nfl;seasons=2025,2026`; all fifteen 2026 league keys came back as
+`470.l.{league_id}`, and team, player, and transaction keys carry the same prefix. The examples
+written here before any response was seen had `461` for 2026 and `449` for 2025 — `461` was a real
+key attached to the wrong season, which is the exact silent collision this entry warns about.
+Never hardcode a game key regardless. Read it from the league resource, or derive league keys from
+Yahoo's own game-key lookup.
 
 ### D-12 — `player_key` is season-scoped; `player_id` is the cross-season identity · Active
 
-The same person is `461.p.31002` one season and `449.p.31002` the next, so `players` holds one row
-per player per season. That is correct for redraft (D-02) and needs no change.
+The same person is `461.p.31002` in 2025 and `470.p.31002` in 2026 (player id illustrative), so
+`players` holds one row per player per season. That is correct for redraft (D-02) and needs no change.
 
 The consequence: any cross-season question about a player joins on `player_id`, not `player_key`.
 This is invisible until the second season exists, at which point a career-totals query silently
@@ -733,7 +735,7 @@ the question was. It may also carry the milestone dates of the
 access process itself — applied, approved, signed, awaiting countersignature — which describe a
 process rather than a term, and without which the project status is unreadable. What it may not
 say: any clause text, clause number, territory, deadline, retention window, or notification
-address. `TASKS.md` follows the same rule.
+address. `docs/TASK.md` follows the same rule.
 
 Pre-existing passages were checked on 2026-09-01 against this rule. D-25, D-26, and D-31, and their
 counterparts in the README, describe the *access application* and the public attribution
@@ -971,9 +973,53 @@ is still carrying the question.
 ### D-33 — Schema is unvalidated against real API responses · Open
 
 The schema was designed from documentation and prior knowledge of Yahoo's data model, not from
-observed payloads. The read-only spike (see `TASKS.md`) exists specifically to confirm shapes before
+observed payloads. The read-only spike (see `docs/TASK.md`) exists specifically to confirm shapes before
 the migration is treated as settled.
 
 Fields most likely to need revision: `transactions.payload` structure, the `stats` JSONB map in
 `player_weekly_stats`, `draft_type` and `scoring_type` value sets, and whether `eligible_positions`
 arrives in a form that maps cleanly onto `TEXT[]`.
+
+**Spike, 2026-10-07 — observed against one league.** Responses archived under
+`raw/2026-10-07/spike/`: `/game/nfl`, the user's leagues for game `470`, and for one league its
+resource, `settings`, `teams`, `draftresults`, `transactions`, and one team's week-5 roster. Compared
+as redacted shapes, not values (D-49). Discrepancies with `001_initial.sql`, none yet acted on:
+
+1. **`transactions.type` is missing its commonest value.** Observed `add/drop` (78 of 110), `add`,
+   `drop`, `trade`; the comment lists `'add','drop','trade','commish'`. `add/drop` is one
+   transaction carrying two players, not two transactions. `commish` not seen. Status was
+   `successful` throughout; pending and failed waivers are unobserved
+2. **`transaction_data` is a list for an add and a bare dict for a drop**, within the same
+   transaction. A trade carries `trader_team_key` / `tradee_team_key` at the transaction level and
+   one `transaction_data` per player moved. `faab_bid` never appeared — this league has
+   `uses_faab = 0`, so the column is unverified, not wrong. `payload JSONB` is the right call
+3. **`is_owned_by_me` does not exist.** Yahoo's field is `is_owned_by_current_login`, present only on
+   the owned team and absent — not `0` — on the other nine. The column can keep its name; absence
+   must read as false
+4. **`draft_type` and `playoff_start_week` are not on the league resource**; both come from
+   `/settings`, so `leagues` needs two fetches. `draft_type` was `live` alongside a separate
+   `is_auction_draft = '0'`, which suggests auction is a flag rather than a `draft_type` value — the
+   `'live' | 'auction' | 'autopick'` comment is unconfirmed either way from one league
+5. **`draft_picks.cost` is absent from a snake draft** — draft results carry exactly `pick`,
+   `round`, `team_key`, `player_key`. 150 picks, 15 rounds, contiguous. No player names: `players`
+   must be filled from another resource before `draft_picks` can satisfy its foreign key
+6. **`eligible_positions` maps onto `TEXT[]`, but it holds slot eligibility, not only positions**:
+   `{RB,W/R/T}`, `{WR,W/R/T,IR}`. `players.position` should come from `primary_position` or
+   `display_position`, not from this array
+7. **`rosters.is_starting` as commented is right.** Selected positions seen: `QB RB WR TE W/R/T K
+   DEF BN IR`; `W/R/T` arrives with `is_flex = 1`. The roster response carries no points
+8. **Scalar types are inconsistent field to field and even record to record.** `num_teams` and
+   `current_week` are ints while `start_week`/`end_week` are strings; `number_of_trades` was `0` on
+   one team and `'1'` on another. Every integer column needs explicit coercion
+9. **Metadata blocks are positional lists of single-key dicts with empty-list placeholders**, and
+   their length varies (roster players: 24 or 26 entries). Fields must be found by name after
+   flattening, never by index
+10. **`scoring_type`** was `head` in all fifteen leagues — `points` is unobserved. `league_type`
+    (`public` / `private`) and `felo_tier` exist and the schema has neither, which is fine
+
+Confirmed rather than discrepant: keys verbatim with the `470` prefix on leagues, teams, players,
+and transactions (`470.l.{n}.tr.{n}`), with `player_key`'s suffix equal to `player_id`; timestamps
+are epoch seconds as strings (D-14); `current_week` is on the league resource as an int (D-24a).
+
+Still unobserved: `player_weekly_stats` (not part of this spike), an auction draft, a FAAB league,
+a `points` league, and any throttling — eleven requests, no 999, no 429, no `Retry-After`.
