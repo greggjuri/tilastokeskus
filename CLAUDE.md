@@ -81,9 +81,11 @@ Not committed, present locally: `docs/AGREEMENT.md`, `.env`, `raw/`.
 ## Critical Rules
 
 ### 1. File Size Limit
-- **Maximum 500 lines per file**
+- **Maximum 500 lines per source file** — Python, SQL, unit files, tests
 - When approaching limit: split into modules
 - Prefer many small files over few large files
+- **Documents are exempt.** `docs/DECISIONS.md`, PRPs and init specs are as long
+  as their content needs; an append-only decision log is supposed to grow
 
 ### 2. Commit Strategy
 - **Commit after every feature** - atomic, working commits
@@ -368,7 +370,7 @@ When something isn't working:
   are keys only (D-08, D-08a)
 - Return an empty result where a raise belongs (D-38)
 - Skip tests to save time
-- Create files over 500 lines
+- Create source files over 500 lines
 - Contradict existing ADRs without discussion
 
 ## Reference Documents

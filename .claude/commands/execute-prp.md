@@ -96,7 +96,7 @@ Fix failures before proceeding.
    (D-44)
 3. Check for regressions
 4. Confirm coverage ≥ 80% and `ruff check` clean
-5. Confirm no file exceeds 500 lines
+5. Confirm no source file exceeds 500 lines
 
 ### Step 5: Update Documentation
 
@@ -161,7 +161,7 @@ Conventional commits:
 
 ## Quality Standards
 
-- **No file over 500 lines** — split if approaching
+- **No source file over 500 lines** — split if approaching; documents are exempt
 - **Tests for new code** — 80% coverage minimum
 - **Contract before arithmetic** — return distinguishability, config fields
   actually read, invalid input refused at construction

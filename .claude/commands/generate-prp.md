@@ -38,7 +38,7 @@ Read the specification at `$ARGUMENTS`:
 1. Search for related existing implementations
 2. Identify the files that need modification
 3. Check `examples/` for patterns to follow
-4. Check whether any file is near the 500-line limit
+4. Check whether any source file is near the 500-line limit (documents are exempt)
 
 **Raw archive — do this before writing any parsing plan:**
 1. If this feature parses a Yahoo resource, find the archived payload under
