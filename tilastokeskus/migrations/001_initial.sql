@@ -1,6 +1,6 @@
 -- 001_initial — core schema.
 --
--- Design notes live in DECISIONS.md; the short version:
+-- Design notes live in docs/DECISIONS.md; the short version:
 --   * Yahoo keys are the primary keys, stored verbatim including the season-specific
 --     game_key prefix, which is what makes them season-unique.                  (D-11)
 --     game_key is 470 for 2026 and 461 for 2025, confirmed 2026-10-07; the league,

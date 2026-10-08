@@ -1,7 +1,7 @@
 """Collection orchestration.
 
 Every run is bounded by a CollectionPlan — which leagues, which weeks, which tables. A live
-run and a backfill differ only in the plan they are given (DECISIONS.md D-18).
+run and a backfill differ only in the plan they are given (docs/DECISIONS.md D-18).
 
 The collectors themselves are not implemented yet; they need real API payloads to be written
 against (D-33). What exists here is the plan, the run record, and the shape the collectors

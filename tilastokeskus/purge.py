@@ -1,4 +1,4 @@
-"""Deletion of Yahoo Materials and Fantasy Information (DECISIONS.md D-50).
+"""Deletion of Yahoo Materials and Fantasy Information (docs/DECISIONS.md D-50).
 
 Two operations that are deliberately separate and never implied by one another:
 

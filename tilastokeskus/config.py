@@ -8,7 +8,7 @@ Values are read from, in ascending order of precedence:
   4. explicit command-line arguments
 
 The season is deliberately a parameter with a computed default rather than a constant
-anywhere in this package. See DECISIONS.md D-03.
+anywhere in this package. See docs/DECISIONS.md D-03.
 """
 
 from __future__ import annotations

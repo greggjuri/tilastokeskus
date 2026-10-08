@@ -2,7 +2,7 @@
 
 The collector takes a week range from the outset rather than assuming "current week", so
 that backfill is the same code path over a different range rather than a separate importer.
-See DECISIONS.md D-18.
+See docs/DECISIONS.md D-18.
 """
 
 from __future__ import annotations

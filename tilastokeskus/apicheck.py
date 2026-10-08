@@ -1,8 +1,10 @@
 """Daily probe of whether Yahoo Fantasy API access has become live.
 
-Access was approved and the agreement signed, but every application on the account is refused at
-the API with a 403 (see `TASKS.md`). That is a Yahoo-side state which can change without anyone
-being told, so this checks once a day and reports the answer to Discord whether it changed or not.
+Built while access was approved and the agreement signed, but every application on the account
+was refused at the API with a 403. That was a Yahoo-side state which could change without anyone
+being told, so this checked once a day and reported the answer to Discord whether it changed or
+not. Access went live on 2026-10-07 and the timer is now off (see `docs/TASK.md`); the command
+remains for checking by hand.
 
 Three properties this module is built around, all of them deliberate:
 

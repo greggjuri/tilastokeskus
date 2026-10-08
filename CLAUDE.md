@@ -132,8 +132,8 @@ ON CONFLICT (team_key, week) DO UPDATE SET
 
 # Unimplemented paths raise with a reason and a pointer — never return empty
 raise NotImplementedError(
-    "listing league keys requires Yahoo Fantasy API access, which is still "
-    "pending. See docs/TASK.md phase 1."
+    "listing league keys is not implemented yet; the collectors are phase 4. "
+    "See docs/TASK.md."
 )
 
 # Dependencies stay minimal: psycopg[binary], python-dotenv.

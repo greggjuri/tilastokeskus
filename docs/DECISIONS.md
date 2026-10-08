@@ -946,8 +946,7 @@ requires no code change. The rollover rule is unit-tested across the boundary.
 ### D-38 — Unimplemented paths fail loudly, with a reason and a pointer · Active
 
 Every stub raises with a message naming what was attempted and where the blocker is documented —
-`"listing league keys requires Yahoo Fantasy API access, which is still pending. See TASKS.md
-phase 1."` Exit codes distinguish usage errors (2) from runtime failures (1).
+`"listing league keys is not implemented yet; the collectors are phase 4. See docs/TASK.md."` Exit codes distinguish usage errors (2) from runtime failures (1).
 
 This matters more than it looks. The pipeline's characteristic failure is silence (D-23, D-29), and
 a stub that returns an empty list instead of raising is indistinguishable from a league with no

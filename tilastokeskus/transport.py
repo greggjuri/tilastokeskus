@@ -94,7 +94,7 @@ def resolve_refresh_token(settings: Settings, path: Path | None = None) -> str:
     if not token:
         raise TokenUnavailable(
             "no Yahoo refresh token found. Set YAHOO_REFRESH_TOKEN in .env, or run "
-            "'yahoofantasy login' in this directory to create .yahoofantasy. See TASKS.md phase 1."
+            "'yahoofantasy login' in this directory to create .yahoofantasy. See README, Setup → Token."
         )
     return token
 

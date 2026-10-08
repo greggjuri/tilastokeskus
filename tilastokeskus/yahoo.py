@@ -2,9 +2,9 @@
 
 Fantasy data provided by Yahoo Fantasy (https://football.fantasysports.yahoo.com/).
 
-Not yet implemented: API access is a reviewed application and the token does not exist yet
-(DECISIONS.md D-25). This module is a placeholder so that the CLI and collector can be built
-and their argument handling exercised in the meantime.
+Not yet implemented: access is live (docs/DECISIONS.md D-25), and the collectors that will use
+this client are phase 4 (docs/TASK.md). This module is a placeholder so that the CLI and collector
+can be built and their argument handling exercised in the meantime.
 
 When it is written it must:
   * refresh access tokens transparently and fail loudly on revocation      (D-29)
@@ -19,12 +19,12 @@ from .config import Settings
 
 
 class YahooAccessPending(NotImplementedError):
-    """Raised by every call here until API access is granted and a token exists."""
+    """Raised by every call here until the phase 4 collectors implement it."""
 
     def __init__(self, operation: str) -> None:
         super().__init__(
-            f"{operation} requires Yahoo Fantasy API access, which is still pending. "
-            "See TASKS.md phase 1."
+            f"{operation} is not implemented yet; the collectors are phase 4. "
+            "See docs/TASK.md."
         )
 
 

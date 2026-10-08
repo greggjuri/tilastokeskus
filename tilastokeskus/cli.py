@@ -10,7 +10,7 @@
     tilasto purge --credentials              delete the token file and the Yahoo keys
 
 Season is a parameter everywhere, defaulting to the current season rather than a hardcoded
-year (DECISIONS.md D-03).
+year (docs/DECISIONS.md D-03).
 """
 
 from __future__ import annotations
