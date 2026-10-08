@@ -19,11 +19,13 @@ import argparse
 import sys
 
 from . import __version__, migrate
-from .collect import CollectionPlan
+from .collect import CollectionPlan, UnknownLeague
 from .config import default_season, load_settings
-from .db import DatabaseUnavailable
+from .db import DatabaseUnavailable, connect
 from .parse import UnexpectedPayload
 from .purge import PurgeVerificationFailed
+from .ratelimit import RateLimitExhausted, RequestFailed
+from .transport import TokenUnavailable
 from .weeks import WeekRangeError, parse_weeks
 
 EXIT_OK = 0
@@ -134,20 +136,63 @@ def cmd_migrate(args: argparse.Namespace, season: int) -> int:
 
 
 def cmd_collect(args: argparse.Namespace, season: int) -> int:
-    from .collect import run  # imported late so `migrate` works without a Yahoo client
+    """Exit 0 only for a run that collected every planned league; partial and failed are 1.
+
+    A timer run that left a league uncollected must read as failed in systemd (PRP-01).
+    """
+    from datetime import UTC, datetime
+
+    from .collect import run
+    from .yahoo import YahooClient
 
     plan = plan_from_args(args, season)
+    settings = load_settings(season)
+    started_at = datetime.now(UTC)
+    client = YahooClient.open(settings, started_at)
 
-    if args.dry_run:
-        print(f"would collect: {plan.describe()}")
-        print("no API request issued")
-        # Request volume depends on team counts, which are not known until the leagues are
-        # fetched. Deliberately not estimated here rather than guessed (D-21a).
-        return EXIT_OK
+    try:
+        if args.dry_run:
+            return dry_run(plan, client, settings)
+        print(f"collecting: {plan.describe()}")
+        with connect(settings, autocommit=True) as conn:
+            result = run(plan, client, conn, started_at)
+        print(f"status: {result.status}  leagues: {result.leagues_synced}/"
+              f"{result.leagues_planned}  rows written: {result.rows_written}")
+        for key, message in result.failed_leagues:
+            print(f"  failed {key}: {message}", file=sys.stderr)
+        return EXIT_OK if result.status == "success" else EXIT_ERROR
+    finally:
+        print_requests(client)
 
-    print(f"collecting: {plan.describe()}")
-    run(load_settings(season), plan)
+
+def dry_run(plan: CollectionPlan, client, settings) -> int:
+    """One request — discovery, archived (D-20) — then the plan. No row and no run is written."""
+    from .collect import select_leagues
+    from .parse import parse_discovery
+    from .store import leagues_needing_settings
+
+    discovery = parse_discovery(client.discover(plan.season), plan.season)
+    keys = select_leagues(discovery.league_keys, plan.league_keys)
+    with connect(settings) as conn:
+        need = leagues_needing_settings(conn, keys)
+    print(f"would collect: {plan.describe()}, game key {discovery.game_key}")
+    for key in keys:
+        print(f"  {key}{'  (+ settings)' if key in need else ''}")
+    print(f"planned requests: {len(keys) + len(need)} "
+          f"({len(keys)} teams, {len(need)} settings), plus the discovery already issued")
     return EXIT_OK
+
+
+def print_requests(client) -> None:
+    """Requests issued and every retry wait — printed when empty too: nothing throttling is a
+    data point, not a pass (D-21a)."""
+    transport = client.transport
+    print(f"requests issued: {transport.requests_issued}")
+    waits = transport.retry_log.waits
+    if not waits:
+        print("retry log: empty — no retries, no throttling")
+    for status, delay, reason in waits:
+        print(f"retry log: status {status}, waited {delay:.1f}s ({reason})")
 
 
 def cmd_leagues(args: argparse.Namespace, season: int) -> int:
@@ -267,6 +312,12 @@ def main(argv: list[str] | None = None) -> int:
     except WeekRangeError as exc:
         print(f"tilasto: {exc}", file=sys.stderr)
         return EXIT_USAGE
+    except UnknownLeague as exc:
+        print(f"tilasto: {exc}", file=sys.stderr)
+        return EXIT_USAGE
+    except (RequestFailed, RateLimitExhausted, TokenUnavailable) as exc:
+        print(f"tilasto: {type(exc).__name__}: {exc}", file=sys.stderr)
+        return EXIT_ERROR
     except UnexpectedPayload as exc:
         print(f"tilasto: unexpected payload: {exc}", file=sys.stderr)
         return EXIT_ERROR
