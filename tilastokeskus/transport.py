@@ -126,6 +126,9 @@ class YahooTransport:
         self._token: AccessToken | None = None
         self.pacer = Pacer(self.policy.request_interval, sleep=sleep, monotonic=monotonic)
         self.retry_log = RetryLog()
+        # HTTP GETs that reached the session, retries included. The retry log records only waits,
+        # so it cannot say how many requests a run made; this can.
+        self.requests_issued = 0
 
     @property
     def refresh_token(self) -> str:
@@ -183,6 +186,7 @@ class YahooTransport:
             # The refresh goes to the login host and is not itself paced.
             token = self.access_token()
             self.pacer.wait()
+            self.requests_issued += 1
             response = self.session.get(
                 url,
                 headers={"Authorization": f"Bearer {token}", "Accept": "application/json"},

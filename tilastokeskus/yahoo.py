@@ -2,20 +2,25 @@
 
 Fantasy data provided by Yahoo Fantasy (https://football.fantasysports.yahoo.com/).
 
-Not yet implemented: access is live (docs/DECISIONS.md D-25), and the collectors that will use
-this client are phase 4 (docs/TASK.md). This module is a placeholder so that the CLI and collector
-can be built and their argument handling exercised in the meantime.
+Fetches and archives; it does not parse. Every response is written to the raw archive before the
+method returns it (D-20), so a parsing bug downstream costs a re-parse, not a re-fetch. Requests
+go through ``YahooTransport``: paced, backed off on 999 and 429, loud on auth failure (D-21, D-29).
 
-When it is written it must:
-  * refresh access tokens transparently and fail loudly on revocation      (D-29)
-  * back off exponentially on 999 and 429 responses                        (D-21)
-  * write every raw response to disk, gzipped and dated, before parsing    (D-20)
-  * preserve Yahoo keys verbatim, including the game-id prefix             (D-11)
+Implemented for PRP-01: discovery, league settings, teams. The rest raise until their collectors
+exist — players, draft picks and rosters in init-02, standings and matchups in phase 7.
 """
 
 from __future__ import annotations
 
+from datetime import datetime
+
+from .archive import RawArchive
 from .config import Settings
+from .transport import YahooTransport
+
+# Game key and league keys in one response, for any season (D-11). /league/{key} is not used: its
+# metadata arrives with every teams and settings payload (PRP-01).
+DISCOVERY_PATH = "users;use_login=1/games;game_codes=nfl;seasons={season}/leagues"
 
 
 class YahooCollectorNotImplemented(NotImplementedError):
@@ -29,17 +34,36 @@ class YahooCollectorNotImplemented(NotImplementedError):
 
 
 class YahooClient:
-    def __init__(self, settings: Settings) -> None:
-        self.settings = settings
+    def __init__(self, settings: Settings, transport: YahooTransport,
+                 archive: RawArchive) -> None:
+        # Not `self.settings`: that name is the /settings method, and an instance attribute would
+        # shadow it.
+        self.config = settings
+        self.transport = transport
+        self.archive = archive
 
-    def league_keys(self, season: int) -> list[str]:
-        raise YahooCollectorNotImplemented("listing league keys")
+    @classmethod
+    def open(cls, settings: Settings, started_at: datetime) -> YahooClient:
+        """A client with a real transport, archiving under ``settings.raw_dir``."""
+        return cls(settings, YahooTransport(settings), RawArchive(settings.raw_dir, started_at))
 
-    def league(self, league_key: str) -> dict:
-        raise YahooCollectorNotImplemented("fetching a league")
+    def _fetch(self, path: str, resource: str, key: str) -> object:
+        payload = self.transport.get(path).json()
+        self.archive.write(resource, key, payload)           # before anything parses it
+        return payload
 
-    def teams(self, league_key: str) -> list[dict]:
-        raise YahooCollectorNotImplemented("fetching teams")
+    def discover(self, season: int) -> object:
+        """The season's game and the user's leagues in it."""
+        if isinstance(season, bool) or not isinstance(season, int):
+            raise TypeError(f"season must be an int, got {season!r}")
+        return self._fetch(DISCOVERY_PATH.format(season=season), "discovery", f"nfl-{season}")
+
+    def settings(self, league_key: str) -> object:
+        return self._fetch(f"league/{league_key}/settings", "settings", league_key)
+
+    def teams(self, league_key: str) -> object:
+        """Every team in a league, with the league's metadata alongside."""
+        return self._fetch(f"league/{league_key}/teams", "teams", league_key)
 
     def draft_results(self, league_key: str) -> list[dict]:
         raise YahooCollectorNotImplemented("fetching draft results")

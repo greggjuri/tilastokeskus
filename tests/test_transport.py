@@ -314,3 +314,19 @@ def test_pacing_applies_to_retries_as_well():
 
     assert get_times == [0.0, 2.0]
     assert slept == [2.0]                      # backoff only; the elapsed 2.0s covers the interval
+
+
+def test_requests_issued_counts_every_get_including_retries():
+    session = FakeSession(get_responses=[FakeResponse(999), FakeResponse(200, {"ok": 1}),
+                                         FakeResponse(200, {"ok": 2})])
+    t = transport(session)
+    assert t.requests_issued == 0
+    t.get("a")                                 # one retry
+    t.get("b")
+    assert t.requests_issued == 3 == len(session.gets)
+
+
+def test_requests_issued_counts_nothing_for_a_token_refresh_alone():
+    t = transport(FakeSession())
+    t.access_token()
+    assert t.requests_issued == 0

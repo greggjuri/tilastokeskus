@@ -22,6 +22,7 @@ from . import __version__, migrate
 from .collect import CollectionPlan
 from .config import default_season, load_settings
 from .db import DatabaseUnavailable
+from .parse import UnexpectedPayload
 from .purge import PurgeVerificationFailed
 from .weeks import WeekRangeError, parse_weeks
 
@@ -150,9 +151,15 @@ def cmd_collect(args: argparse.Namespace, season: int) -> int:
 
 
 def cmd_leagues(args: argparse.Namespace, season: int) -> int:
+    """One discovery request, archived like any other response (D-20)."""
+    from datetime import UTC, datetime
+
+    from .parse import parse_discovery
     from .yahoo import YahooClient
 
-    for key in YahooClient(load_settings(season)).league_keys(season):
+    client = YahooClient.open(load_settings(season), datetime.now(UTC))
+    discovery = parse_discovery(client.discover(season), season)
+    for key in discovery.league_keys:
         print(key)
     return EXIT_OK
 
@@ -260,6 +267,9 @@ def main(argv: list[str] | None = None) -> int:
     except WeekRangeError as exc:
         print(f"tilasto: {exc}", file=sys.stderr)
         return EXIT_USAGE
+    except UnexpectedPayload as exc:
+        print(f"tilasto: unexpected payload: {exc}", file=sys.stderr)
+        return EXIT_ERROR
     except PurgeVerificationFailed as exc:
         print(f"tilasto: {exc}", file=sys.stderr)
         return EXIT_ERROR
