@@ -1,0 +1,855 @@
+{
+ "fantasy_content": {
+  "xml:lang": "redacted",
+  "yahoo:uri": "redacted",
+  "league": [
+   {
+    "league_key": "470.l.100003",
+    "league_id": "100003",
+    "name": "redacted",
+    "url": "https://example.invalid/redacted",
+    "recordbook_url": "https://example.invalid/redacted",
+    "logo_url": "https://example.invalid/redacted",
+    "draft_status": "postdraft",
+    "num_teams": 10,
+    "max_teams": "10",
+    "edit_key": "5",
+    "weekly_deadline": "",
+    "roster_type": "week",
+    "league_update_timestamp": "1",
+    "scoring_type": "head",
+    "scoring_label": "redacted",
+    "league_type": "public",
+    "renew": "",
+    "renewed": "",
+    "felo_tier": "gold",
+    "is_highscore": false,
+    "is_guillotine": "0",
+    "matchup_week": 5,
+    "iris_group_chat_id": "",
+    "allow_add_to_dl_extra_pos": 1,
+    "is_pro_league": "1",
+    "is_cash_league": "0",
+    "current_week": 5,
+    "start_week": "1",
+    "start_date": "2026-09-09",
+    "end_week": "17",
+    "end_date": "2027-01-04",
+    "is_plus_league": "0",
+    "game_code": "nfl",
+    "season": "2026"
+   },
+   {
+    "teams": {
+     "0": {
+      "team": [
+       [
+        {
+         "team_key": "470.l.100003.t.1"
+        },
+        {
+         "team_id": "1"
+        },
+        {
+         "name": "redacted"
+        },
+        {
+         "is_owned_by_current_login": 1
+        },
+        {
+         "url": "https://example.invalid/redacted"
+        },
+        {
+         "team_logos": [
+          {
+           "team_logo": {
+            "size": "large",
+            "url": "https://example.invalid/redacted"
+           }
+          }
+         ]
+        },
+        [],
+        [],
+        {
+         "waiver_priority": 6
+        },
+        [],
+        {
+         "number_of_moves": 7
+        },
+        {
+         "number_of_trades": "1"
+        },
+        {
+         "roster_adds": {
+          "coverage_type": "week",
+          "coverage_value": 5,
+          "value": "0"
+         }
+        },
+        [],
+        {
+         "league_scoring_type": "head"
+        },
+        [],
+        {
+         "draft_position": 9
+        },
+        {
+         "has_draft_grade": 1,
+         "draft_grade": "D-",
+         "draft_recap_url": "https://example.invalid/redacted"
+        },
+        [],
+        [],
+        [],
+        [],
+        [],
+        {
+         "managers": [
+          {
+           "manager": {
+            "manager_id": "1",
+            "nickname": "redacted",
+            "guid": "redacted",
+            "is_current_login": "1",
+            "image_url": "https://example.invalid/redacted",
+            "felo_score": "1",
+            "felo_tier": "platinum"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     },
+     "1": {
+      "team": [
+       [
+        {
+         "team_key": "470.l.100003.t.2"
+        },
+        {
+         "team_id": "2"
+        },
+        {
+         "name": "redacted"
+        },
+        [],
+        {
+         "url": "https://example.invalid/redacted"
+        },
+        {
+         "team_logos": [
+          {
+           "team_logo": {
+            "size": "large",
+            "url": "https://example.invalid/redacted"
+           }
+          }
+         ]
+        },
+        [],
+        [],
+        {
+         "waiver_priority": 3
+        },
+        [],
+        {
+         "number_of_moves": 5
+        },
+        {
+         "number_of_trades": 0
+        },
+        {
+         "roster_adds": {
+          "coverage_type": "week",
+          "coverage_value": 5,
+          "value": "2"
+         }
+        },
+        [],
+        {
+         "league_scoring_type": "head"
+        },
+        [],
+        {
+         "draft_position": 8
+        },
+        {
+         "has_draft_grade": 1,
+         "draft_grade": "C+",
+         "draft_recap_url": "https://example.invalid/redacted"
+        },
+        [],
+        [],
+        [],
+        [],
+        [],
+        {
+         "managers": [
+          {
+           "manager": {
+            "manager_id": "1",
+            "nickname": "redacted",
+            "guid": "redacted",
+            "image_url": "https://example.invalid/redacted",
+            "felo_score": "1",
+            "felo_tier": "platinum"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     },
+     "2": {
+      "team": [
+       [
+        {
+         "team_key": "470.l.100003.t.3"
+        },
+        {
+         "team_id": "3"
+        },
+        {
+         "name": "redacted"
+        },
+        [],
+        {
+         "url": "https://example.invalid/redacted"
+        },
+        {
+         "team_logos": [
+          {
+           "team_logo": {
+            "size": "large",
+            "url": "https://example.invalid/redacted"
+           }
+          }
+         ]
+        },
+        [],
+        [],
+        {
+         "waiver_priority": 7
+        },
+        [],
+        {
+         "number_of_moves": 2
+        },
+        {
+         "number_of_trades": 0
+        },
+        {
+         "roster_adds": {
+          "coverage_type": "week",
+          "coverage_value": 5,
+          "value": "1"
+         }
+        },
+        [],
+        {
+         "league_scoring_type": "head"
+        },
+        [],
+        {
+         "draft_position": 5
+        },
+        {
+         "has_draft_grade": 1,
+         "draft_grade": "C+",
+         "draft_recap_url": "https://example.invalid/redacted"
+        },
+        [],
+        [],
+        [],
+        [],
+        [],
+        {
+         "managers": [
+          {
+           "manager": {
+            "manager_id": "1",
+            "nickname": "redacted",
+            "guid": "redacted",
+            "image_url": "https://example.invalid/redacted",
+            "felo_score": "1",
+            "felo_tier": "silver"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     },
+     "3": {
+      "team": [
+       [
+        {
+         "team_key": "470.l.100003.t.4"
+        },
+        {
+         "team_id": "4"
+        },
+        {
+         "name": "redacted"
+        },
+        [],
+        {
+         "url": "https://example.invalid/redacted"
+        },
+        {
+         "team_logos": [
+          {
+           "team_logo": {
+            "size": "large",
+            "url": "https://example.invalid/redacted"
+           }
+          }
+         ]
+        },
+        [],
+        [],
+        {
+         "waiver_priority": 5
+        },
+        [],
+        {
+         "number_of_moves": 2
+        },
+        {
+         "number_of_trades": "2"
+        },
+        {
+         "roster_adds": {
+          "coverage_type": "week",
+          "coverage_value": 5,
+          "value": "0"
+         }
+        },
+        [],
+        {
+         "league_scoring_type": "head"
+        },
+        [],
+        {
+         "draft_position": 6
+        },
+        {
+         "has_draft_grade": 1,
+         "draft_grade": "A+",
+         "draft_recap_url": "https://example.invalid/redacted"
+        },
+        [],
+        [],
+        [],
+        [],
+        [],
+        {
+         "managers": [
+          {
+           "manager": {
+            "manager_id": "1",
+            "nickname": "redacted",
+            "guid": "redacted",
+            "image_url": "https://example.invalid/redacted",
+            "felo_score": "1",
+            "felo_tier": "platinum"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     },
+     "4": {
+      "team": [
+       [
+        {
+         "team_key": "470.l.100003.t.5"
+        },
+        {
+         "team_id": "5"
+        },
+        {
+         "name": "redacted"
+        },
+        [],
+        {
+         "url": "https://example.invalid/redacted"
+        },
+        {
+         "team_logos": [
+          {
+           "team_logo": {
+            "size": "large",
+            "url": "https://example.invalid/redacted"
+           }
+          }
+         ]
+        },
+        [],
+        [],
+        {
+         "waiver_priority": 2
+        },
+        [],
+        {
+         "number_of_moves": 9
+        },
+        {
+         "number_of_trades": "1"
+        },
+        {
+         "roster_adds": {
+          "coverage_type": "week",
+          "coverage_value": 5,
+          "value": "2"
+         }
+        },
+        [],
+        {
+         "league_scoring_type": "head"
+        },
+        [],
+        {
+         "draft_position": 10
+        },
+        {
+         "has_draft_grade": 1,
+         "draft_grade": "D-",
+         "draft_recap_url": "https://example.invalid/redacted"
+        },
+        [],
+        [],
+        [],
+        [],
+        [],
+        {
+         "managers": [
+          {
+           "manager": {
+            "manager_id": "1",
+            "nickname": "redacted",
+            "guid": "redacted",
+            "image_url": "https://example.invalid/redacted",
+            "felo_score": "1",
+            "felo_tier": "platinum"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     },
+     "5": {
+      "team": [
+       [
+        {
+         "team_key": "470.l.100003.t.6"
+        },
+        {
+         "team_id": "6"
+        },
+        {
+         "name": "redacted"
+        },
+        [],
+        {
+         "url": "https://example.invalid/redacted"
+        },
+        {
+         "team_logos": [
+          {
+           "team_logo": {
+            "size": "large",
+            "url": "https://example.invalid/redacted"
+           }
+          }
+         ]
+        },
+        [],
+        [],
+        {
+         "waiver_priority": 1
+        },
+        [],
+        {
+         "number_of_moves": 0
+        },
+        {
+         "number_of_trades": 0
+        },
+        {
+         "roster_adds": {
+          "coverage_type": "week",
+          "coverage_value": 5,
+          "value": "0"
+         }
+        },
+        [],
+        {
+         "league_scoring_type": "head"
+        },
+        [],
+        {
+         "draft_position": 4
+        },
+        {
+         "has_draft_grade": 1,
+         "draft_grade": "A+",
+         "draft_recap_url": "https://example.invalid/redacted"
+        },
+        [],
+        [],
+        [],
+        [],
+        [],
+        {
+         "managers": [
+          {
+           "manager": {
+            "manager_id": "1",
+            "nickname": "redacted",
+            "guid": "redacted",
+            "image_url": "https://example.invalid/redacted",
+            "felo_score": "1",
+            "felo_tier": "bronze"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     },
+     "6": {
+      "team": [
+       [
+        {
+         "team_key": "470.l.100003.t.7"
+        },
+        {
+         "team_id": "7"
+        },
+        {
+         "name": "redacted"
+        },
+        [],
+        {
+         "url": "https://example.invalid/redacted"
+        },
+        {
+         "team_logos": [
+          {
+           "team_logo": {
+            "size": "large",
+            "url": "https://example.invalid/redacted"
+           }
+          }
+         ]
+        },
+        [],
+        [],
+        {
+         "waiver_priority": 10
+        },
+        [],
+        {
+         "number_of_moves": 21
+        },
+        {
+         "number_of_trades": "2"
+        },
+        {
+         "roster_adds": {
+          "coverage_type": "week",
+          "coverage_value": 5,
+          "value": "2"
+         }
+        },
+        [],
+        {
+         "league_scoring_type": "head"
+        },
+        [],
+        {
+         "draft_position": 1
+        },
+        {
+         "has_draft_grade": 1,
+         "draft_grade": "B",
+         "draft_recap_url": "https://example.invalid/redacted"
+        },
+        [],
+        [],
+        [],
+        [],
+        [],
+        {
+         "managers": [
+          {
+           "manager": {
+            "manager_id": "1",
+            "nickname": "redacted",
+            "guid": "redacted",
+            "image_url": "https://example.invalid/redacted",
+            "felo_score": "1",
+            "felo_tier": "gold"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     },
+     "7": {
+      "team": [
+       [
+        {
+         "team_key": "470.l.100003.t.8"
+        },
+        {
+         "team_id": "8"
+        },
+        {
+         "name": "redacted"
+        },
+        [],
+        {
+         "url": "https://example.invalid/redacted"
+        },
+        {
+         "team_logos": [
+          {
+           "team_logo": {
+            "size": "large",
+            "url": "https://example.invalid/redacted"
+           }
+          }
+         ]
+        },
+        [],
+        [],
+        {
+         "waiver_priority": 8
+        },
+        [],
+        {
+         "number_of_moves": 2
+        },
+        {
+         "number_of_trades": 0
+        },
+        {
+         "roster_adds": {
+          "coverage_type": "week",
+          "coverage_value": 5,
+          "value": "1"
+         }
+        },
+        [],
+        {
+         "league_scoring_type": "head"
+        },
+        [],
+        {
+         "draft_position": 3
+        },
+        {
+         "has_draft_grade": 1,
+         "draft_grade": "D+",
+         "draft_recap_url": "https://example.invalid/redacted"
+        },
+        [],
+        [],
+        [],
+        [],
+        [],
+        {
+         "managers": [
+          {
+           "manager": {
+            "manager_id": "1",
+            "nickname": "redacted",
+            "guid": "redacted",
+            "image_url": "https://example.invalid/redacted",
+            "felo_score": "1",
+            "felo_tier": "gold"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     },
+     "8": {
+      "team": [
+       [
+        {
+         "team_key": "470.l.100003.t.9"
+        },
+        {
+         "team_id": "9"
+        },
+        {
+         "name": "redacted"
+        },
+        [],
+        {
+         "url": "https://example.invalid/redacted"
+        },
+        {
+         "team_logos": [
+          {
+           "team_logo": {
+            "size": "large",
+            "url": "https://example.invalid/redacted"
+           }
+          }
+         ]
+        },
+        [],
+        [],
+        {
+         "waiver_priority": 4
+        },
+        [],
+        {
+         "number_of_moves": 3
+        },
+        {
+         "number_of_trades": 0
+        },
+        {
+         "roster_adds": {
+          "coverage_type": "week",
+          "coverage_value": 5,
+          "value": "0"
+         }
+        },
+        [],
+        {
+         "league_scoring_type": "head"
+        },
+        [],
+        {
+         "draft_position": 7
+        },
+        {
+         "has_draft_grade": 1,
+         "draft_grade": "C-",
+         "draft_recap_url": "https://example.invalid/redacted"
+        },
+        [],
+        [],
+        [],
+        [],
+        [],
+        {
+         "managers": [
+          {
+           "manager": {
+            "manager_id": "1",
+            "nickname": "redacted",
+            "guid": "redacted",
+            "image_url": "https://example.invalid/redacted",
+            "felo_score": "1",
+            "felo_tier": "bronze"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     },
+     "9": {
+      "team": [
+       [
+        {
+         "team_key": "470.l.100003.t.10"
+        },
+        {
+         "team_id": "10"
+        },
+        {
+         "name": "redacted"
+        },
+        [],
+        {
+         "url": "https://example.invalid/redacted"
+        },
+        {
+         "team_logos": [
+          {
+           "team_logo": {
+            "size": "large",
+            "url": "https://example.invalid/redacted"
+           }
+          }
+         ]
+        },
+        [],
+        [],
+        {
+         "waiver_priority": 9
+        },
+        [],
+        {
+         "number_of_moves": 7
+        },
+        {
+         "number_of_trades": 0
+        },
+        {
+         "roster_adds": {
+          "coverage_type": "week",
+          "coverage_value": 5,
+          "value": "3"
+         }
+        },
+        [],
+        {
+         "league_scoring_type": "head"
+        },
+        [],
+        {
+         "draft_position": 2
+        },
+        {
+         "has_draft_grade": 1,
+         "draft_grade": "A-",
+         "draft_recap_url": "https://example.invalid/redacted"
+        },
+        [],
+        [],
+        [],
+        [],
+        [],
+        {
+         "managers": [
+          {
+           "manager": {
+            "manager_id": "1",
+            "nickname": "redacted",
+            "guid": "redacted",
+            "image_url": "https://example.invalid/redacted",
+            "felo_score": "1",
+            "felo_tier": "diamond"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     },
+     "count": 10
+    }
+   }
+  ],
+  "time": "redacted",
+  "copyright": "redacted",
+  "refresh_rate": "1"
+ }
+}

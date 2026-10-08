@@ -1,0 +1,2047 @@
+{
+ "fantasy_content": {
+  "xml:lang": "redacted",
+  "yahoo:uri": "redacted",
+  "league": [
+   {
+    "league_key": "470.l.100004",
+    "league_id": "100004",
+    "name": "redacted",
+    "url": "https://example.invalid/redacted",
+    "recordbook_url": "https://example.invalid/redacted",
+    "logo_url": "https://example.invalid/redacted",
+    "draft_status": "postdraft",
+    "num_teams": 10,
+    "max_teams": "10",
+    "edit_key": "5",
+    "weekly_deadline": "",
+    "roster_type": "week",
+    "league_update_timestamp": "1",
+    "scoring_type": "head",
+    "scoring_label": "redacted",
+    "league_type": "private",
+    "renew": "redacted",
+    "renewed": "",
+    "felo_tier": "silver",
+    "is_highscore": false,
+    "is_guillotine": "0",
+    "matchup_week": 5,
+    "iris_group_chat_id": "",
+    "short_invitation_url": "https://example.invalid/redacted",
+    "allow_add_to_dl_extra_pos": 1,
+    "is_pro_league": "0",
+    "is_cash_league": "0",
+    "current_week": 5,
+    "start_week": "1",
+    "start_date": "2026-09-09",
+    "end_week": "17",
+    "end_date": "2027-01-04",
+    "is_plus_league": "0",
+    "game_code": "nfl",
+    "season": "2026"
+   },
+   {
+    "settings": [
+     {
+      "draft_type": "live",
+      "is_auction_draft": "0",
+      "scoring_type": "head",
+      "scoring_label": "redacted",
+      "custom_scoring_preset_name": "",
+      "custom_scoring_preset_logo": "",
+      "is_highscore": false,
+      "invite_permission": "all",
+      "uses_playoff": "1",
+      "has_playoff_consolation_games": true,
+      "playoff_start_week": "16",
+      "uses_playoff_reseeding": 1,
+      "uses_lock_eliminated_teams": 0,
+      "num_playoff_teams": "4",
+      "num_playoff_consolation_teams": 4,
+      "has_multiweek_championship": 0,
+      "waiver_type": "R",
+      "waiver_rule": "all",
+      "uses_faab": "0",
+      "draft_time": "1",
+      "draft_pick_time": "1",
+      "post_draft_players": "W",
+      "max_teams": "10",
+      "waiver_time": "1",
+      "trade_end_date": "redacted",
+      "trade_ratify_type": "vote",
+      "trade_reject_time": "1",
+      "player_pool": "ALL",
+      "cant_cut_list": "yahoo",
+      "draft_together": 0,
+      "sendbird_channel_url": "redacted",
+      "roster_positions": [
+       {
+        "roster_position": {
+         "position": "QB",
+         "position_type": "O",
+         "count": 1,
+         "is_starting_position": 1
+        }
+       },
+       {
+        "roster_position": {
+         "position": "RB",
+         "position_type": "O",
+         "count": 3,
+         "is_starting_position": 1
+        }
+       },
+       {
+        "roster_position": {
+         "position": "WR",
+         "position_type": "O",
+         "count": 3,
+         "is_starting_position": 1
+        }
+       },
+       {
+        "roster_position": {
+         "position": "TE",
+         "position_type": "O",
+         "count": 1,
+         "is_starting_position": 1
+        }
+       },
+       {
+        "roster_position": {
+         "position": "W/R/T",
+         "position_type": "O",
+         "count": 1,
+         "is_starting_position": 1
+        }
+       },
+       {
+        "roster_position": {
+         "position": "Q/W/R/T",
+         "position_type": "O",
+         "count": 1,
+         "is_starting_position": 1
+        }
+       },
+       {
+        "roster_position": {
+         "position": "K",
+         "position_type": "K",
+         "count": 1,
+         "is_starting_position": 1
+        }
+       },
+       {
+        "roster_position": {
+         "position": "DEF",
+         "position_type": "DT",
+         "count": 1,
+         "is_starting_position": 1
+        }
+       },
+       {
+        "roster_position": {
+         "position": "D",
+         "position_type": "DP",
+         "count": 1,
+         "is_starting_position": 1
+        }
+       },
+       {
+        "roster_position": {
+         "position": "BN",
+         "count": 6,
+         "is_starting_position": 0
+        }
+       },
+       {
+        "roster_position": {
+         "position": "IR",
+         "count": 4,
+         "is_starting_position": 0
+        }
+       }
+      ],
+      "stat_categories": {
+       "stats": [
+        {
+         "stat": {
+          "stat_id": 4,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "O",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "O"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 5,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "O",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "O"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 6,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "0",
+          "position_type": "O",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "O"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 8,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "O",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "O",
+             "is_only_display_stat": "1"
+            }
+           }
+          ],
+          "is_only_display_stat": "1"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 9,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "O",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "O"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 10,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "O",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "O"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 78,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "O",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "O",
+             "is_only_display_stat": "1"
+            }
+           }
+          ],
+          "is_only_display_stat": "1"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 11,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "O",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "O"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 12,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "O",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "O"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 13,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "O",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "O"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 14,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "O",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "O"
+            }
+           },
+           {
+            "stat_position_type": {
+             "position_type": "DP",
+             "is_only_display_stat": "1"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 15,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "O",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "O"
+            }
+           },
+           {
+            "stat_position_type": {
+             "position_type": "DP",
+             "is_only_display_stat": "1"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 16,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "O",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "O"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 18,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "0",
+          "position_type": "O",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "O"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 58,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "0",
+          "position_type": "O",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "O"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 59,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "O",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "O"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 60,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "O",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "O"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 61,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "O",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "O"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 62,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "O",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "O"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 63,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "O",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "O"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 64,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "O",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "O"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 57,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "O",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "O"
+            }
+           }
+          ],
+          "is_excluded_from_display": "1"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 19,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "K",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "K"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 20,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "K",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "K"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 21,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "K",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "K"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 22,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "K",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "K"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 23,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "K",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "K"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 29,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "K",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "K"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 30,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "0",
+          "position_type": "K",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "K"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 31,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "0",
+          "position_type": "DT",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DT",
+             "is_only_display_stat": "1"
+            }
+           }
+          ],
+          "is_only_display_stat": "1"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 32,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DT",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DT"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 33,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DT",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DT"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 34,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DT",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DT"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 35,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DT",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DT"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 36,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DT",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DT"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 37,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DT",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DT"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 49,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DT",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DT"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 67,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DT",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DT"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 68,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DT",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DT"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 69,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "0",
+          "position_type": "DT",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DT",
+             "is_only_display_stat": "1"
+            }
+           }
+          ],
+          "is_only_display_stat": "1"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 50,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DT",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DT"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 51,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DT",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DT"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 52,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DT",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DT"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 53,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DT",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DT"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 54,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DT",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DT"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 55,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DT",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DT"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 56,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DT",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DT"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 71,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DT",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DT"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 72,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DT",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DT"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 73,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DT",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DT"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 74,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DT",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DT"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 75,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DT",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DT"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 76,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DT",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DT"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 82,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DT",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DT"
+            }
+           }
+          ],
+          "is_excluded_from_display": "1"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 38,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DP",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DP"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 39,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DP",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DP"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 40,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DP",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DP"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 41,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DP",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DP"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 42,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DP",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DP"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 43,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DP",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DP"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 44,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DP",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DP"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 45,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DP",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DP"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 46,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DP",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DP"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 47,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DP",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DP"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 65,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DP",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DP"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 66,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DP",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DP"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 83,
+          "enabled": "1",
+          "name": "redacted",
+          "display_name": "redacted",
+          "group": "redacted",
+          "abbr": "redacted",
+          "sort_order": "1",
+          "position_type": "DP",
+          "stat_position_types": [
+           {
+            "stat_position_type": {
+             "position_type": "DP"
+            }
+           }
+          ],
+          "is_excluded_from_display": "1"
+         }
+        }
+       ],
+       "groups": [
+        {
+         "group": {
+          "group_name": "redacted",
+          "group_display_name": "redacted",
+          "group_abbr": "redacted"
+         }
+        },
+        {
+         "group": {
+          "group_name": "redacted",
+          "group_display_name": "redacted",
+          "group_abbr": "redacted"
+         }
+        },
+        {
+         "group": {
+          "group_name": "redacted",
+          "group_display_name": "redacted",
+          "group_abbr": "redacted"
+         }
+        },
+        {
+         "group": {
+          "group_name": "redacted",
+          "group_display_name": "redacted",
+          "group_abbr": "redacted"
+         }
+        },
+        {
+         "group": {
+          "group_name": "redacted",
+          "group_display_name": "redacted",
+          "group_abbr": "redacted"
+         }
+        },
+        {
+         "group": {
+          "group_name": "redacted",
+          "group_display_name": "redacted",
+          "group_abbr": "redacted"
+         }
+        },
+        {
+         "group": {
+          "group_name": "redacted",
+          "group_display_name": "redacted",
+          "group_abbr": "redacted"
+         }
+        },
+        {
+         "group": {
+          "group_name": "redacted",
+          "group_display_name": "redacted",
+          "group_abbr": "redacted"
+         }
+        },
+        {
+         "group": {
+          "group_name": "redacted",
+          "group_display_name": "redacted",
+          "group_abbr": "redacted"
+         }
+        },
+        {
+         "group": {
+          "group_name": "redacted",
+          "group_display_name": "redacted",
+          "group_abbr": "redacted"
+         }
+        },
+        {
+         "group": {
+          "group_name": "redacted",
+          "group_display_name": "redacted",
+          "group_abbr": "redacted"
+         }
+        },
+        {
+         "group": {
+          "group_name": "redacted",
+          "group_display_name": "",
+          "group_abbr": ""
+         }
+        },
+        {
+         "group": {
+          "group_name": "redacted",
+          "group_display_name": "redacted",
+          "group_abbr": "redacted"
+         }
+        },
+        {
+         "group": {
+          "group_name": "redacted",
+          "group_display_name": "redacted",
+          "group_abbr": "redacted"
+         }
+        },
+        {
+         "group": {
+          "group_name": "redacted",
+          "group_display_name": "",
+          "group_abbr": ""
+         }
+        }
+       ]
+      },
+      "stat_modifiers": {
+       "stats": [
+        {
+         "stat": {
+          "stat_id": 4,
+          "value": "0.04",
+          "bonuses": [
+           {
+            "bonus": {
+             "target": 1,
+             "points": "1"
+            }
+           },
+           {
+            "bonus": {
+             "target": 1,
+             "points": "1"
+            }
+           },
+           {
+            "bonus": {
+             "target": 1,
+             "points": "1"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 5,
+          "value": "6"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 6,
+          "value": "-1"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 9,
+          "value": "0.1",
+          "bonuses": [
+           {
+            "bonus": {
+             "target": 1,
+             "points": "1"
+            }
+           },
+           {
+            "bonus": {
+             "target": 1,
+             "points": "1"
+            }
+           },
+           {
+            "bonus": {
+             "target": 1,
+             "points": "1"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 10,
+          "value": "6"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 11,
+          "value": "1"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 12,
+          "value": "0.1",
+          "bonuses": [
+           {
+            "bonus": {
+             "target": 1,
+             "points": "1"
+            }
+           },
+           {
+            "bonus": {
+             "target": 1,
+             "points": "1"
+            }
+           },
+           {
+            "bonus": {
+             "target": 1,
+             "points": "1"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 13,
+          "value": "6"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 14,
+          "value": "0.1",
+          "bonuses": [
+           {
+            "bonus": {
+             "target": 1,
+             "points": "1"
+            }
+           },
+           {
+            "bonus": {
+             "target": 1,
+             "points": "1"
+            }
+           },
+           {
+            "bonus": {
+             "target": 1,
+             "points": "1"
+            }
+           }
+          ]
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 15,
+          "value": "6"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 16,
+          "value": "2"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 18,
+          "value": "-2"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 57,
+          "value": "6"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 58,
+          "value": "-1"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 59,
+          "value": "1"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 60,
+          "value": "2"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 61,
+          "value": "4"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 62,
+          "value": "1"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 63,
+          "value": "4"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 64,
+          "value": "1"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 19,
+          "value": "3"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 20,
+          "value": "3"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 21,
+          "value": "3"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 22,
+          "value": "4"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 23,
+          "value": "5"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 29,
+          "value": "1"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 30,
+          "value": "-1"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 32,
+          "value": "1"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 33,
+          "value": "3"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 34,
+          "value": "2"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 35,
+          "value": "6"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 36,
+          "value": "2"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 37,
+          "value": "2"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 49,
+          "value": "6"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 50,
+          "value": "10"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 51,
+          "value": "7"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 52,
+          "value": "4"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 53,
+          "value": "1"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 54,
+          "value": "0"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 55,
+          "value": "-1"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 56,
+          "value": "-4"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 67,
+          "value": "3"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 68,
+          "value": "1"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 71,
+          "value": "10"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 72,
+          "value": "7"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 73,
+          "value": "4"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 74,
+          "value": "0"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 75,
+          "value": "-1"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 76,
+          "value": "-4"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 82,
+          "value": "2"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 38,
+          "value": "1"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 39,
+          "value": "0"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 40,
+          "value": "3"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 41,
+          "value": "3"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 42,
+          "value": "2"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 43,
+          "value": "1"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 44,
+          "value": "6"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 45,
+          "value": "3"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 46,
+          "value": "1"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 47,
+          "value": "2"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 65,
+          "value": "2"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 66,
+          "value": "0.1"
+         }
+        },
+        {
+         "stat": {
+          "stat_id": 83,
+          "value": "3"
+         }
+        }
+       ]
+      },
+      "uses_median_score": false,
+      "league_premium_features": [],
+      "pickem_enabled": "",
+      "uses_fractional_points": "1",
+      "uses_negative_points": "1"
+     }
+    ]
+   }
+  ],
+  "time": "redacted",
+  "copyright": "redacted",
+  "refresh_rate": "1"
+ }
+}

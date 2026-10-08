@@ -1,0 +1,292 @@
+{
+ "fantasy_content": {
+  "xml:lang": "redacted",
+  "yahoo:uri": "redacted",
+  "users": {
+   "0": {
+    "user": [
+     {
+      "guid": "redacted"
+     },
+     {
+      "games": {
+       "0": {
+        "game": [
+         {
+          "game_key": "461",
+          "game_id": "461",
+          "name": "redacted",
+          "code": "nfl",
+          "type": "full",
+          "url": "https://example.invalid/redacted",
+          "season": "2025",
+          "is_registration_over": 1,
+          "is_game_over": 1,
+          "is_offseason": 1
+         },
+         {
+          "leagues": {
+           "0": {
+            "league": [
+             {
+              "league_key": "461.l.100016",
+              "league_id": "100016",
+              "name": "redacted",
+              "url": "https://example.invalid/redacted",
+              "recordbook_url": "https://example.invalid/redacted",
+              "logo_url": "https://example.invalid/redacted",
+              "draft_status": "postdraft",
+              "num_teams": 10,
+              "max_teams": "10",
+              "edit_key": "17",
+              "weekly_deadline": "",
+              "roster_type": "week",
+              "league_update_timestamp": "1",
+              "scoring_type": "head",
+              "scoring_label": "redacted",
+              "league_type": "public",
+              "renew": "",
+              "renewed": "",
+              "felo_tier": "gold",
+              "is_highscore": false,
+              "is_guillotine": "0",
+              "matchup_week": 17,
+              "iris_group_chat_id": "",
+              "allow_add_to_dl_extra_pos": 1,
+              "is_pro_league": "1",
+              "is_cash_league": "0",
+              "current_week": "17",
+              "start_week": "1",
+              "start_date": "2025-09-04",
+              "end_week": "17",
+              "end_date": "2025-12-29",
+              "is_finished": 1,
+              "is_plus_league": "0",
+              "game_code": "nfl",
+              "season": "2025"
+             }
+            ]
+           },
+           "1": {
+            "league": [
+             {
+              "league_key": "461.l.100017",
+              "league_id": "100017",
+              "name": "redacted",
+              "url": "https://example.invalid/redacted",
+              "recordbook_url": "https://example.invalid/redacted",
+              "logo_url": "https://example.invalid/redacted",
+              "draft_status": "postdraft",
+              "num_teams": 10,
+              "max_teams": "10",
+              "edit_key": "17",
+              "weekly_deadline": "",
+              "roster_type": "week",
+              "league_update_timestamp": "1",
+              "scoring_type": "head",
+              "scoring_label": "redacted",
+              "league_type": "public",
+              "renew": "",
+              "renewed": "",
+              "felo_tier": "gold",
+              "is_highscore": false,
+              "is_guillotine": "0",
+              "matchup_week": 17,
+              "iris_group_chat_id": "",
+              "allow_add_to_dl_extra_pos": 1,
+              "is_pro_league": "1",
+              "is_cash_league": "0",
+              "current_week": "17",
+              "start_week": "1",
+              "start_date": "2025-09-04",
+              "end_week": "17",
+              "end_date": "2025-12-29",
+              "is_finished": 1,
+              "is_plus_league": "0",
+              "game_code": "nfl",
+              "season": "2025"
+             }
+            ]
+           },
+           "2": {
+            "league": [
+             {
+              "league_key": "461.l.100018",
+              "league_id": "100018",
+              "name": "redacted",
+              "url": "https://example.invalid/redacted",
+              "recordbook_url": "https://example.invalid/redacted",
+              "logo_url": "https://example.invalid/redacted",
+              "draft_status": "postdraft",
+              "num_teams": 10,
+              "max_teams": "10",
+              "edit_key": "17",
+              "weekly_deadline": "",
+              "roster_type": "week",
+              "league_update_timestamp": "1",
+              "scoring_type": "head",
+              "scoring_label": "redacted",
+              "league_type": "public",
+              "renew": "",
+              "renewed": "",
+              "felo_tier": "gold",
+              "is_highscore": false,
+              "is_guillotine": "0",
+              "matchup_week": 17,
+              "iris_group_chat_id": "",
+              "allow_add_to_dl_extra_pos": 1,
+              "is_pro_league": "1",
+              "is_cash_league": "0",
+              "current_week": "17",
+              "start_week": "1",
+              "start_date": "2025-09-04",
+              "end_week": "17",
+              "end_date": "2025-12-29",
+              "is_finished": 1,
+              "is_plus_league": "0",
+              "game_code": "nfl",
+              "season": "2025"
+             }
+            ]
+           },
+           "3": {
+            "league": [
+             {
+              "league_key": "461.l.100019",
+              "league_id": "100019",
+              "name": "redacted",
+              "url": "https://example.invalid/redacted",
+              "recordbook_url": "https://example.invalid/redacted",
+              "logo_url": "https://example.invalid/redacted",
+              "draft_status": "postdraft",
+              "num_teams": 10,
+              "max_teams": "10",
+              "edit_key": "17",
+              "weekly_deadline": "",
+              "roster_type": "week",
+              "league_update_timestamp": "1",
+              "scoring_type": "head",
+              "scoring_label": "redacted",
+              "league_type": "public",
+              "renew": "",
+              "renewed": "",
+              "felo_tier": "platinum",
+              "is_highscore": false,
+              "is_guillotine": "0",
+              "matchup_week": 17,
+              "iris_group_chat_id": "",
+              "allow_add_to_dl_extra_pos": 1,
+              "is_pro_league": "1",
+              "is_cash_league": "0",
+              "current_week": "17",
+              "start_week": "1",
+              "start_date": "2025-09-04",
+              "end_week": "17",
+              "end_date": "2025-12-29",
+              "is_finished": 1,
+              "is_plus_league": "0",
+              "game_code": "nfl",
+              "season": "2025"
+             }
+            ]
+           },
+           "4": {
+            "league": [
+             {
+              "league_key": "461.l.100020",
+              "league_id": "100020",
+              "name": "redacted",
+              "url": "https://example.invalid/redacted",
+              "recordbook_url": "https://example.invalid/redacted",
+              "logo_url": "https://example.invalid/redacted",
+              "draft_status": "postdraft",
+              "num_teams": 8,
+              "max_teams": "10",
+              "edit_key": "17",
+              "weekly_deadline": "",
+              "roster_type": "week",
+              "league_update_timestamp": "1",
+              "scoring_type": "head",
+              "scoring_label": "redacted",
+              "league_type": "private",
+              "renew": "redacted",
+              "renewed": "redacted",
+              "felo_tier": "silver",
+              "is_highscore": false,
+              "is_guillotine": "0",
+              "matchup_week": 17,
+              "iris_group_chat_id": "",
+              "short_invitation_url": "https://example.invalid/redacted",
+              "allow_add_to_dl_extra_pos": 1,
+              "is_pro_league": "0",
+              "is_cash_league": "0",
+              "current_week": "17",
+              "start_week": "1",
+              "start_date": "2025-09-04",
+              "end_week": "17",
+              "end_date": "2025-12-29",
+              "is_finished": 1,
+              "is_plus_league": "0",
+              "game_code": "nfl",
+              "season": "2025"
+             }
+            ]
+           },
+           "5": {
+            "league": [
+             {
+              "league_key": "461.l.100021",
+              "league_id": "100021",
+              "name": "redacted",
+              "url": "https://example.invalid/redacted",
+              "recordbook_url": "https://example.invalid/redacted",
+              "logo_url": "https://example.invalid/redacted",
+              "draft_status": "postdraft",
+              "num_teams": 10,
+              "max_teams": "10",
+              "edit_key": "17",
+              "weekly_deadline": "",
+              "roster_type": "week",
+              "league_update_timestamp": "1",
+              "scoring_type": "head",
+              "scoring_label": "redacted",
+              "league_type": "public",
+              "renew": "",
+              "renewed": "",
+              "felo_tier": "gold",
+              "is_highscore": false,
+              "is_guillotine": "0",
+              "matchup_week": 17,
+              "iris_group_chat_id": "",
+              "allow_add_to_dl_extra_pos": 1,
+              "is_pro_league": "1",
+              "is_cash_league": "0",
+              "current_week": "17",
+              "start_week": "1",
+              "start_date": "2025-09-04",
+              "end_week": "17",
+              "end_date": "2025-12-29",
+              "is_finished": 1,
+              "is_plus_league": "0",
+              "game_code": "nfl",
+              "season": "2025"
+             }
+            ]
+           },
+           "count": 6
+          }
+         }
+        ]
+       },
+       "count": 1
+      }
+     }
+    ]
+   },
+   "count": 1
+  },
+  "time": "redacted",
+  "copyright": "redacted",
+  "refresh_rate": "1"
+ }
+}
