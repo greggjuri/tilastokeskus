@@ -297,7 +297,7 @@ nothing applied that standard to the documents the PRPs are generated from.
 | Bug | Root Cause | Prevention |
 |-----|------------|------------|
 | Auction and FAAB documented as impossible in all fifteen leagues | One league's `/settings` generalized to fifteen, in `CLAUDE.md` and `docs/PLANNING.md`. Combined with "unobserved cases raise", a collector built to the docs would raise on real data — a bug introduced via documentation | Every claim about the data states its sample: "all fifteen" or "one league". A claim about leagues not fetched is a task, not a fact |
-| An agreement deadline written into `docs/TESTING.md` | The D-52 rule was breached by the person writing the docs about the rule; vigilance was the only control | A grep in the Pre-Commit Checklist |
+| An agreement deadline written into `docs/TESTING.md` | The D-52 rule was breached by the person writing the docs about the rule; vigilance was the only control | `tests/test_agreement_terms.py`, asserting expected match counts per file. A plain grep was tried first and rejected: its known hits were the rule's own wording, and a check that always cries wolf gets skimmed |
 
 ---
 
@@ -308,9 +308,11 @@ nothing applied that standard to the documents the PRPs are generated from.
 - [ ] `ruff check` clean
 - [ ] Contract checklist applied to every new public function
 - [ ] No secrets, token file, raw archive, or agreement text in the diff
-- [ ] Agreement-term grep returns nothing (D-52) — a control, not vigilance; a
-      deadline from the agreement was once written into this very file:
-      `git diff --cached | grep -nEi '[0-9]+ (business )?days|clause|section [0-9]+'`
+- [ ] `tests/test_agreement_terms.py` passes (D-52). It counts agreement-term
+      matches per file and fails when a count changes, rather than reporting hits:
+      the known matches are the rule's own statements, and a check that always
+      reports them gets skimmed (D-23). A deadline from the agreement was once
+      written into this very file
 - [ ] No host name or address in a committed file
 - [ ] New decisions recorded in `docs/DECISIONS.md`
 - [ ] `docs/TASK.md` updated
