@@ -23,7 +23,6 @@ the largest build in the project (the collectors) rather than after.
 
 - [ ] `{collector}` - init-02: `players`, `draft_picks`, `rosters` on the PRP-01
       machinery. Not yet claimed — claim `02` from Spec Numbering when taken up
-- [ ] Give the transport a request timeout — see Known Issues
 
 ---
 
@@ -47,6 +46,12 @@ Phases 0–3 predate the CE workflow and have no specs.
 ---
 
 ## Recently Completed
+
+### Transport request timeout (2026-10-08)
+- [x] Every API GET and token POST carries `(10s connect, 30s read)`; validated
+      at construction, asserted on the wire, mutation-checked
+- [x] A timeout is retried under the backoff budget and logged; once the budget
+      is spent it raises `RequestTimedOut`, which aborts the run (D-58)
 
 ### PRP-01 — Collection infrastructure, leagues and teams (2026-10-08)
 - [x] Raw archive, gzipped, one directory per run, written before parsing (D-20)
@@ -249,13 +254,6 @@ $0/month. The budget is **request volume**, not money — see `docs/PLANNING.md`
 
 ### Known Issues
 
-- **The transport has no request timeout.** The first fifteen-league run spent
-  135s between starting and receiving its discovery response — inside the token
-  refresh or the discovery GET, uninstrumented, so which one is unknown. Yahoo
-  answered and the run succeeded, but a request that never answers would hang
-  until systemd's 30-minute `TimeoutStartSec`. `apicheck` sets a timeout; the
-  transport's `session.get` and token `post` do not. Decide the value and how a
-  timeout is classified (league failure vs run abort) before fixing
 - **The first scheduled collection is 2026-10-09 00:11.** Check the journal and
   `collector_runs` the next morning — the timer path has not run the collector
 - **Discord webhook URL leaked into a chat transcript** during the spike. Rotate

@@ -553,7 +553,8 @@ left a league uncollected shows as failed in systemd rather than green.
 
 Three failures are not one league's and abort the run, after it is recorded: authentication
 (fifteen identical auth failures are one failure, D-29), exhausted backoff (stopping is the point
-of the limit, D-21), and a lost database connection. An unknown `--league` is a usage error, exits
+of the limit, D-21), and a lost database connection. **Amended 2026-10-08**: a fourth, requests
+that keep timing out (D-58). An unknown `--league` is a usage error, exits
 2, and records no run.
 
 ### D-57 — League metadata comes from the teams payload; discovery resolves the game key · Active
@@ -571,6 +572,26 @@ key is still read, never hardcoded (D-11), and every league key is checked again
 
 `--dry-run` issues exactly that one request, archived like any other (D-20), and writes nothing
 else. The previous convention — "issues nothing" — could not name the real leagues.
+
+### D-58 — Every request times out; a stall is retried, then aborts the run · Active
+
+Decided 2026-10-08, after the first fifteen-league run spent 135s waiting for its first response —
+in the token refresh or the discovery request, which were not separately timed. The transport set
+no timeout, so a request that never answered would have blocked until systemd's 30-minute
+`TimeoutStartSec`.
+
+Every request — API GET and token POST — carries `(10s connect, 30s read)`, matching the probe in
+D-55. A timeout is treated like a 999: transient, retried under the same backoff budget (D-42),
+logged in the retry log with status `0` (`NO_RESPONSE`). The 135s stall would most likely have
+succeeded on a retry.
+
+When the budget is spent and the last attempt timed out, the error is `RequestTimedOut`, not
+`RateLimitExhausted`. They mean different things — nothing came back, versus Yahoo kept refusing —
+and need different fixes, so the name must not blur them. Like exhausted throttling, it aborts
+the run rather than failing one league and moving on: a stalled network is everyone's problem,
+and fifteen leagues each waiting out the budget would be minutes of the same failure (D-56).
+
+Only timeouts are retried. A connection refused or reset still raises at once.
 
 ---
 
