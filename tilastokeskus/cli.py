@@ -24,7 +24,7 @@ from .config import default_season, load_settings
 from .db import DatabaseUnavailable, connect
 from .parse import UnexpectedPayload
 from .purge import PurgeVerificationFailed
-from .ratelimit import RateLimitExhausted, RequestFailed
+from .ratelimit import RateLimitExhausted, RequestFailed, RequestTimedOut
 from .transport import TokenUnavailable
 from .weeks import WeekRangeError, parse_weeks
 
@@ -316,7 +316,7 @@ def main(argv: list[str] | None = None) -> int:
     except UnknownLeague as exc:
         print(f"tilasto: {exc}", file=sys.stderr)
         return EXIT_USAGE
-    except (RequestFailed, RateLimitExhausted, TokenUnavailable) as exc:
+    except (RequestFailed, RateLimitExhausted, RequestTimedOut, TokenUnavailable) as exc:
         print(f"tilasto: {type(exc).__name__}: {exc}", file=sys.stderr)
         return EXIT_ERROR
     except UnexpectedPayload as exc:

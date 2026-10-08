@@ -69,6 +69,25 @@ class RateLimitExhausted(RuntimeError):
         )
 
 
+class RequestTimedOut(RuntimeError):
+    """Raised when the retry budget is spent on requests that never answered.
+
+    Distinct from ``RateLimitExhausted``: that one means Yahoo kept saying no, this one means
+    nothing came back at all. The fixes differ, so the name must not blur them.
+    """
+
+    def __init__(self, attempts: int, slept: float, reason: str) -> None:
+        self.attempts = attempts
+        self.slept = slept
+        super().__init__(
+            f"giving up after {attempts} attempt(s) and {slept:.1f}s of backoff: {reason}"
+        )
+
+
+# Recorded in the retry log for an attempt that raised instead of returning a status.
+NO_RESPONSE = 0
+
+
 @dataclass(frozen=True)
 class BackoffPolicy:
     """Bounded exponential backoff.
@@ -203,6 +222,13 @@ def retry_after_seconds(headers: dict | None) -> float | None:
     return None
 
 
+def _exhausted(no_response: BaseException | None, attempts: int, slept: float,
+               reason: str) -> RuntimeError:
+    """The budget-spent error: RequestTimedOut if the last attempt never answered."""
+    kind = RequestTimedOut if no_response is not None else RateLimitExhausted
+    return kind(attempts, slept, reason)
+
+
 def call_with_backoff(
     operation: Callable[[], tuple[int, object]],
     policy: BackoffPolicy | None = None,
@@ -212,6 +238,7 @@ def call_with_backoff(
     headers_of: Callable[[object], dict | None] | None = None,
     log: RetryLog | None = None,
     pacer: Pacer | None = None,
+    retry_on: tuple[type[BaseException], ...] = (),
 ) -> object:
     """Call ``operation`` until it succeeds or the retry budget is spent.
 
@@ -223,6 +250,11 @@ def call_with_backoff(
     * ``AuthenticationFailed`` on 401 or 403 (D-29)
     * ``RequestFailed`` on any other non-retryable, non-success status
     * ``RateLimitExhausted`` when either ceiling is reached
+    * ``RequestTimedOut`` when either ceiling is reached and the last attempt raised one of
+      ``retry_on`` — a request that never answered, rather than one Yahoo refused
+
+    An exception in ``retry_on`` is retried under the same budget as a 999, and logged with
+    status ``NO_RESPONSE``. Any other exception propagates at once.
     """
     policy = policy or BackoffPolicy()
     log = log if log is not None else RetryLog()
@@ -234,24 +266,28 @@ def call_with_backoff(
             pacer.wait()
 
         attempts += 1
-        status, payload = operation()
-
-        if is_success(status):
-            return payload
-
-        if not is_retryable(status):
-            if status in AUTH_STATUSES:
-                raise AuthenticationFailed(status, payload)
-            raise RequestFailed(status, payload)
+        no_response: BaseException | None = None
+        try:
+            status, payload = operation()
+        except retry_on as exc:
+            no_response, status, payload = exc, NO_RESPONSE, None
+            cause = f"{type(exc).__name__}, no response"
+        else:
+            if is_success(status):
+                return payload
+            if not is_retryable(status):
+                if status in AUTH_STATUSES:
+                    raise AuthenticationFailed(status, payload)
+                raise RequestFailed(status, payload)
+            cause = f"status {status}"
 
         if attempts >= policy.max_attempts:
-            raise RateLimitExhausted(
-                attempts, slept, f"status {status}, attempt ceiling reached"
-            )
+            raise _exhausted(no_response, attempts, slept, f"{cause}, attempt ceiling reached") \
+                from no_response
 
         delay = policy.delay_for(attempts - 1)
 
-        if headers_of is not None:
+        if headers_of is not None and no_response is None:
             server_delay = retry_after_seconds(headers_of(payload))
             if server_delay is not None:
                 # Trust the server over our own arithmetic, but never below our own floor:
@@ -268,13 +304,12 @@ def call_with_backoff(
         # Check the budget *before* sleeping. Sleeping a truncated amount and then failing
         # anyway wastes the wait and muddies the log.
         if slept + delay > policy.max_cumulative_delay:
-            raise RateLimitExhausted(
-                attempts,
-                slept,
-                f"status {status}, cumulative delay budget "
-                f"({policy.max_cumulative_delay:.0f}s) would be exceeded",
-            )
+            raise _exhausted(
+                no_response, attempts, slept,
+                f"{cause}, cumulative delay budget ({policy.max_cumulative_delay:.0f}s) "
+                "would be exceeded",
+            ) from no_response
 
-        log.record(status, delay, f"status {status}")
+        log.record(status, delay, cause)
         slept += delay
         sleep(delay)

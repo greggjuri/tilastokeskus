@@ -11,16 +11,20 @@ import pickle
 from itertools import pairwise
 
 import pytest
+import requests
 
 from tilastokeskus.config import Settings
 from tilastokeskus.ratelimit import (
+    NO_RESPONSE,
     AuthenticationFailed,
     BackoffPolicy,
     RateLimitExhausted,
     RequestFailed,
+    RequestTimedOut,
 )
 from tilastokeskus.transport import (
     API_ROOT,
+    REQUEST_TIMEOUT,
     AccessToken,
     TokenUnavailable,
     YahooTransport,
@@ -330,3 +334,72 @@ def test_requests_issued_counts_nothing_for_a_token_refresh_alone():
     t = transport(FakeSession())
     t.access_token()
     assert t.requests_issued == 0
+
+
+# ---- request timeout -------------------------------------------------------------------------
+
+
+class StallingSession(FakeSession):
+    """Raises requests.ReadTimeout for the first `stalls` GETs (or POSTs), then answers."""
+
+    def __init__(self, get_stalls=0, post_stalls=0, **kw):
+        super().__init__(**kw)
+        self.get_stalls, self.post_stalls = get_stalls, post_stalls
+
+    def get(self, url, **kwargs):
+        if self.get_stalls:
+            self.get_stalls -= 1
+            self.gets.append((url, kwargs))
+            raise requests.ReadTimeout("read timed out")
+        return super().get(url, **kwargs)
+
+    def post(self, url, **kwargs):
+        if self.post_stalls:
+            self.post_stalls -= 1
+            self.posts.append((url, kwargs))
+            raise requests.ConnectTimeout("connect timed out")
+        return super().post(url, **kwargs)
+
+
+def test_every_request_carries_the_timeout():
+    """A timeout that exists in config but never reaches the wire is the request_interval bug."""
+    session = FakeSession()
+    transport(session).get("a")
+    assert session.posts[0][1]["timeout"] == REQUEST_TIMEOUT
+    assert session.gets[0][1]["timeout"] == REQUEST_TIMEOUT
+    assert REQUEST_TIMEOUT == (10.0, 30.0)
+
+
+def test_a_custom_timeout_reaches_the_wire():
+    session = FakeSession()
+    transport(session, timeout=(3.0, 7.0)).get("a")
+    assert session.posts[0][1]["timeout"] == session.gets[0][1]["timeout"] == (3.0, 7.0)
+
+
+@pytest.mark.parametrize("bad", [(0, 30), (10, -1), (10,), (10, 30, 5), (True, 30), ("10", 30)])
+def test_an_unusable_timeout_is_refused_at_construction(bad):
+    with pytest.raises(ValueError, match="timeout must be"):
+        transport(FakeSession(), timeout=bad)
+
+
+def test_a_read_timeout_is_retried_and_logged():
+    session = StallingSession(get_stalls=1)
+    t = transport(session)
+    assert t.get("a").json() == {"ok": 1}
+    assert t.requests_issued == 2
+    assert t.retry_log.waits == [(NO_RESPONSE, 2.0, "ReadTimeout, no response")]
+
+
+def test_a_token_refresh_timeout_is_retried():
+    session = StallingSession(post_stalls=1)
+    t = transport(session)
+    assert t.get("a").json() == {"ok": 1}
+    assert len(session.posts) == 2
+    assert t.retry_log.waits[0][2] == "ConnectTimeout, no response"
+
+
+def test_persistent_timeouts_raise_request_timed_out():
+    session = StallingSession(get_stalls=10)
+    with pytest.raises(RequestTimedOut, match="ReadTimeout, no response, attempt ceiling"):
+        transport(session).get("a")
+    assert len(session.gets) == EXACT.max_attempts

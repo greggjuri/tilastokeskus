@@ -23,7 +23,7 @@ from .parse import (
     parse_settings,
     parse_teams,
 )
-from .ratelimit import RateLimitExhausted
+from .ratelimit import RateLimitExhausted, RequestTimedOut
 from .store import (
     leagues_needing_settings,
     store_league_settings,
@@ -166,8 +166,9 @@ def run(plan: CollectionPlan, client: YahooClient, conn: psycopg.Connection,
     ``conn`` should be in autocommit mode, so each league's ``transaction()`` commits on its own.
 
     Raises — after recording the run — on failures that are not one league's: authentication
-    (D-29), exhausted backoff (stopping is the point of the limit), a lost database connection,
-    and anything before the league loop. An unknown ``--league`` raises without recording: it is
+    (D-29), exhausted backoff (stopping is the point of the limit), requests that keep timing out
+    (a stalled network is everyone's problem), a lost database connection, and anything before
+    the league loop. An unknown ``--league`` raises without recording: it is
     a usage error, not a run.
     """
     require_buildable(plan)
@@ -188,7 +189,8 @@ def run(plan: CollectionPlan, client: YahooClient, conn: psycopg.Connection,
             try:
                 with conn.transaction():
                     rows = collect_league(conn, client, key, plan.season, key in need_settings)
-            except (AuthenticationFailed, RateLimitExhausted, psycopg.OperationalError):
+            except (AuthenticationFailed, RateLimitExhausted, RequestTimedOut,
+                    psycopg.OperationalError):
                 raise
             except Exception as exc:  # noqa: BLE001 - one league's failure is recorded, not fatal
                 result.failed_leagues.append((key, f"{type(exc).__name__}: {exc}"))

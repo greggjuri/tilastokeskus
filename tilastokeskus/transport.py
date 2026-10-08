@@ -41,6 +41,12 @@ from .ratelimit import (
 API_ROOT = "https://fantasysports.yahooapis.com/fantasy/v2"
 TOKEN_URL = "https://api.login.yahoo.com/oauth2/get_token"
 
+# (connect, read) seconds for every request, API and token alike. Without one, a request that never
+# answers blocks until systemd kills the unit (TimeoutStartSec, 30 minutes): the first
+# fifteen-league run waited 135s for a single response. A timeout is retried under the backoff
+# budget like a 999, and raises RequestTimedOut once that is spent.
+REQUEST_TIMEOUT = (10.0, 30.0)
+
 # Refresh slightly early rather than at the instant of expiry, so a token cannot lapse
 # mid-request and turn a working run into a spurious auth failure.
 EXPIRY_SKEW_SECONDS = 60.0
@@ -116,7 +122,12 @@ class YahooTransport:
         sleep: Callable[[float], None] = time.sleep,
         monotonic: Callable[[], float] = time.monotonic,
         now: Callable[[], float] = time.time,
+        timeout: tuple[float, float] = REQUEST_TIMEOUT,
     ) -> None:
+        if len(timeout) != 2 or not all(
+                isinstance(t, int | float) and not isinstance(t, bool) and t > 0 for t in timeout):
+            raise ValueError(f"timeout must be (connect, read), both positive, got {timeout!r}")
+        self.timeout = timeout
         self.settings = settings
         self.policy = policy or BackoffPolicy()
         self.session = session or requests.Session()
@@ -156,6 +167,7 @@ class YahooTransport:
                 "refresh_token": self.refresh_token,
                 "grant_type": "refresh_token",
             },
+            timeout=self.timeout,
         )
 
         if response.status_code != 200:
@@ -175,8 +187,8 @@ class YahooTransport:
     def get(self, path: str, **params: Any) -> Any:
         """GET a Fantasy API path, returning the response object on success.
 
-        Raises RateLimitExhausted, AuthenticationFailed, or RequestFailed — never an error
-        response dressed as data.
+        Raises RateLimitExhausted, RequestTimedOut, AuthenticationFailed, or RequestFailed — never an
+        error response dressed as data.
         """
         url = f"{API_ROOT}/{path.lstrip('/')}"
 
@@ -191,6 +203,7 @@ class YahooTransport:
                 url,
                 headers={"Authorization": f"Bearer {token}", "Accept": "application/json"},
                 params={"format": "json", **params},
+                timeout=self.timeout,
             )
             return response.status_code, response
 
@@ -202,4 +215,5 @@ class YahooTransport:
             sleep=self._sleep,
             headers_of=lambda response: getattr(response, "headers", None),
             log=self.retry_log,
+            retry_on=(requests.Timeout,),
         )

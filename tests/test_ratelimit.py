@@ -8,11 +8,13 @@ in the field (D-42).
 import pytest
 
 from tilastokeskus.ratelimit import (
+    NO_RESPONSE,
     AuthenticationFailed,
     BackoffPolicy,
     Pacer,
     RateLimitExhausted,
     RequestFailed,
+    RequestTimedOut,
     RetryLog,
     call_with_backoff,
     is_retryable,
@@ -465,3 +467,74 @@ def test_pacer_last_timestamp_recovers_after_a_backwards_jump():
     pacer.wait()            # plenty elapsed, so no wait
 
     assert slept == [1.0]
+
+
+# --- requests that never answer -------------------------------------------------------------
+
+class Stalled(Exception):
+    """Stands in for requests.Timeout."""
+
+
+def stalling(outcomes, payload="ok"):
+    """An operation that raises Stalled for each 'stall' in outcomes, returns the status otherwise,
+    and returns 200 once outcomes run out."""
+    seq = list(outcomes)
+
+    def operation():
+        outcome = seq.pop(0) if seq else 200
+        if outcome == "stall":
+            raise Stalled("read timed out")
+        return outcome, payload
+
+    return operation
+
+
+def test_a_listed_exception_is_retried_under_the_backoff_schedule():
+    sleeper, log = Recorder(), RetryLog()
+    result = call_with_backoff(stalling(["stall", "stall"]), EXACT, sleep=sleeper, log=log,
+                               retry_on=(Stalled,))
+    assert result == "ok"
+    assert sleeper.slept == [2.0, 4.0]
+    assert log.waits == [(NO_RESPONSE, 2.0, "Stalled, no response"),
+                         (NO_RESPONSE, 4.0, "Stalled, no response")]
+
+
+def test_an_unlisted_exception_propagates_without_retry():
+    sleeper = Recorder()
+    with pytest.raises(Stalled):
+        call_with_backoff(stalling(["stall"]), EXACT, sleep=sleeper)
+    assert sleeper.slept == []
+
+
+def test_stalls_exhausting_the_attempt_ceiling_raise_request_timed_out():
+    with pytest.raises(RequestTimedOut, match="5 attempt.*Stalled, no response, attempt ceiling") \
+            as exc:
+        call_with_backoff(stalling(["stall"] * 5), EXACT, sleep=Recorder(), retry_on=(Stalled,))
+    assert not isinstance(exc.value, RateLimitExhausted)   # never blurred with throttling
+    assert isinstance(exc.value.__cause__, Stalled)
+    assert exc.value.attempts == 5
+
+
+def test_stalls_exhausting_the_delay_budget_raise_request_timed_out():
+    policy = BackoffPolicy(base_delay=2.0, multiplier=2.0, max_attempts=10, jitter=0.0,
+                           max_cumulative_delay=5.0)
+    with pytest.raises(RequestTimedOut, match="cumulative delay budget"):
+        call_with_backoff(stalling(["stall"] * 10), policy, sleep=Recorder(), retry_on=(Stalled,))
+
+
+def test_the_last_attempt_decides_which_exhaustion_is_raised():
+    # Throttled first, then nothing came back: the run ended on a stall.
+    with pytest.raises(RequestTimedOut):
+        call_with_backoff(stalling([999, 999, 999, 999, "stall"]), EXACT, sleep=Recorder(),
+                          retry_on=(Stalled,))
+    # Stalled first, then throttled to the end: the run ended on Yahoo refusing.
+    with pytest.raises(RateLimitExhausted):
+        call_with_backoff(stalling(["stall", 999, 999, 999, 999]), EXACT, sleep=Recorder(),
+                          retry_on=(Stalled,))
+
+
+def test_a_stall_then_auth_failure_still_fails_auth_immediately():
+    sleeper = Recorder()
+    with pytest.raises(AuthenticationFailed):
+        call_with_backoff(stalling(["stall", 401]), EXACT, sleep=sleeper, retry_on=(Stalled,))
+    assert sleeper.slept == [2.0]

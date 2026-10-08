@@ -7,7 +7,7 @@ from test_collect import DISCOVERED, FakeClient, points_scoring
 
 from tilastokeskus import cli
 from tilastokeskus.config import Settings
-from tilastokeskus.ratelimit import RetryLog
+from tilastokeskus.ratelimit import RequestTimedOut, RetryLog
 from tilastokeskus.transport import AuthenticationFailed
 
 
@@ -124,3 +124,10 @@ def test_dry_run_refuses_an_unbuilt_scope_before_any_request(wired, capsys):
         cli.EXIT_ERROR
     assert client.calls == []
     assert "requests issued: 0" in capsys.readouterr().out
+
+
+def test_persistent_timeouts_exit_one_with_the_reason(wired, capsys):
+    client, _db = wired
+    client.fail = {("teams", DISCOVERED[0]): RequestTimedOut(5, 30.0, "ReadTimeout, no response")}
+    assert cli.main(["collect", "--league", DISCOVERED[0]]) == cli.EXIT_ERROR
+    assert "RequestTimedOut" in capsys.readouterr().err

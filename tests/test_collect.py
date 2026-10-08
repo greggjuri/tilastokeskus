@@ -13,7 +13,7 @@ from tilastokeskus.collect import (
     run,
 )
 from tilastokeskus.parse import UnexpectedPayload, parse_discovery
-from tilastokeskus.ratelimit import RateLimitExhausted
+from tilastokeskus.ratelimit import RateLimitExhausted, RequestTimedOut
 from tilastokeskus.transport import AuthenticationFailed
 
 
@@ -166,6 +166,17 @@ def test_exhausted_backoff_aborts_rather_than_moving_to_the_next_league(db):
         run(plan(keys), client, db)
     assert len([c for c in client.calls if c[0] == "teams"]) == 2
     assert runs(db)[0][:2] == ("failed", 1)
+
+
+def test_persistent_timeouts_abort_the_run_rather_than_moving_on(db):
+    keys = DISCOVERED[:3]
+    client = FakeClient(fail={("teams", keys[0]): RequestTimedOut(5, 30.0, "ReadTimeout")})
+    with pytest.raises(RequestTimedOut):
+        run(plan(keys), client, db)
+    assert len([c for c in client.calls if c[0] == "teams"]) == 1
+    status, synced, _, error = runs(db)[0]
+    assert (status, synced) == ("failed", 0)
+    assert error.startswith("RequestTimedOut")
 
 
 def test_a_discovery_failure_is_recorded(db):
