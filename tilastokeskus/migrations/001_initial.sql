@@ -11,19 +11,30 @@
 --   * TIMESTAMPTZ everywhere; Yahoo's epoch seconds are converted on insert.     (D-14)
 --   * Week belongs in the key. Every table here is re-fetchable by week.         (D-15, D-17)
 --
--- This schema is provisional until validated against real API payloads.          (D-33)
+-- Revised 2026-10-07 against the phase 3 spike payloads: league, settings, teams, draft
+-- results, transactions, one roster. standings, matchups and player_weekly_stats were not
+-- fetched by the spike and remain unvalidated.                                   (D-33)
+--
+-- No CHECK constraints on Yahoo enumerations (scoring_type, draft_type, transactions.type).
+-- An unobserved value raises in the collector with a reason (D-38); it does not fail at
+-- insert, where the error would carry neither.
 
 CREATE TABLE leagues (
     league_key      TEXT PRIMARY KEY,          -- e.g. '470.l.123456' (2026)
     season          INT  NOT NULL,
     name            TEXT NOT NULL,
     num_teams       INT,
-    scoring_type    TEXT,                      -- 'head' | 'points'
-    draft_type      TEXT,                      -- 'live' | 'auction' | 'autopick'
+    scoring_type    TEXT,                      -- 'head' in all fifteen leagues; 'points' unobserved
+    -- draft_type, is_auction_draft and playoff_start_week come from /settings, not the league
+    -- resource. NULL until settings_fetched_at is set; never defaulted, so "not fetched" cannot
+    -- read as "not an auction".
+    draft_type      TEXT,                      -- 'live' observed, in one league only
+    is_auction_draft BOOLEAN,                  -- its own field in /settings, not a draft_type value
     current_week    INT,
     start_week      INT,
     end_week        INT,
     playoff_start_week INT,
+    settings_fetched_at TIMESTAMPTZ,           -- /settings is fetched once per season; NULL = not yet
     is_finished     BOOLEAN NOT NULL DEFAULT FALSE,
     -- Presentation only: set by hand, never inferred, and never an input to collection.
     -- Grafana colors and filters on it; the collector does not read it at all (D-54).
@@ -38,18 +49,30 @@ CREATE TABLE teams (
     team_id         INT  NOT NULL,
     name            TEXT NOT NULL,
     manager_name    TEXT,
-    is_owned_by_me  BOOLEAN NOT NULL DEFAULT FALSE,  -- drives dashboard filtering
+    -- Drives dashboard filtering. Source field is is_owned_by_current_login, which Yahoo omits
+    -- entirely on teams you don't own rather than sending 0.
+    is_owned_by_me  BOOLEAN NOT NULL DEFAULT FALSE,
     logo_url        TEXT,
+    -- Draft outcome: fixed once the draft is done, so it lives here rather than in the weekly
+    -- standings snapshot.
+    draft_position  INT,
+    draft_grade     TEXT,
+    has_draft_grade BOOLEAN,
+    draft_recap_url TEXT,
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX teams_league_idx ON teams (league_key);
+-- At most one owned team per league: a misread ownership flag becomes a constraint violation
+-- rather than silent breakage. "At least one" cannot be a constraint; the collector asserts it.
+CREATE UNIQUE INDEX teams_owned_one_per_league_idx ON teams (league_key) WHERE is_owned_by_me;
 
 CREATE TABLE players (
     player_key      TEXT PRIMARY KEY,          -- e.g. '470.p.31002' — season-scoped (2026)
     player_id       INT,                       -- stable across seasons; join on this
     full_name       TEXT NOT NULL,
     position        TEXT,                      -- 'QB','RB','WR','TE','K','DEF'
-    eligible_positions TEXT[],
+    eligible_positions TEXT[],                 -- includes slots like 'W/R/T' and 'IR', so it
+                                               -- cannot derive position
     nfl_team        TEXT,
     bye_week        INT,
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -69,9 +92,14 @@ CREATE TABLE standings (
     ties            INT  NOT NULL DEFAULT 0,
     points_for      NUMERIC(8,2),
     points_against  NUMERIC(8,2),
-    streak          TEXT,
+    streak_type     TEXT,                      -- Yahoo returns streak as {type, value}
+    streak_value    INT,
+    playoff_seed    INT,
+    clinched_playoffs BOOLEAN,
     waiver_priority INT,
     faab_balance    INT,
+    number_of_moves INT,
+    number_of_trades INT,
     captured_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
     PRIMARY KEY (team_key, week)
 );
@@ -84,7 +112,8 @@ CREATE TABLE matchups (
     opponent_key    TEXT REFERENCES teams(team_key),
     points          NUMERIC(8,2),
     projected_points NUMERIC(8,2),
-    result          TEXT,                      -- 'W' | 'L' | 'T' | NULL if unplayed
+    result          TEXT,                      -- 'W' | 'L' | 'T' | NULL if unplayed; derived
+                                               -- from winner_team_key, not a fetched field
     is_playoffs     BOOLEAN NOT NULL DEFAULT FALSE,
     is_consolation  BOOLEAN NOT NULL DEFAULT FALSE,
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -117,13 +146,15 @@ CREATE TABLE player_weekly_stats (
     PRIMARY KEY (league_key, player_key, week)
 );
 
+-- Draft results carry only pick, round, team key and player key — no names — so players must
+-- be populated before these rows can satisfy their foreign keys.
 CREATE TABLE draft_picks (
     league_key      TEXT NOT NULL REFERENCES leagues(league_key),
     pick            INT  NOT NULL,
     round           INT  NOT NULL,
     team_key        TEXT NOT NULL REFERENCES teams(team_key),
     player_key      TEXT NOT NULL REFERENCES players(player_key),
-    cost            INT,                       -- auction leagues only
+    cost            INT,                       -- auction leagues only; absent from a snake draft
     PRIMARY KEY (league_key, pick)
 );
 CREATE INDEX draft_picks_team_idx ON draft_picks (team_key);
@@ -132,11 +163,15 @@ CREATE INDEX draft_picks_player_idx ON draft_picks (player_key);
 CREATE TABLE transactions (
     transaction_key TEXT PRIMARY KEY,
     league_key      TEXT NOT NULL REFERENCES leagues(league_key),
-    type            TEXT,                      -- 'add','drop','trade','commish'
+    type            TEXT,                      -- 'add/drop' commonest (78 of 110), then 'add',
+                                               -- 'drop', 'trade'; 'commish' never appeared
     status          TEXT,
     timestamp       TIMESTAMPTZ,
     faab_bid        INT,
-    payload         JSONB,                     -- full detail; shape varies a lot
+    -- The whole transaction, kept deliberately. Shape varies even within one transaction: an
+    -- add's player detail is a list, a drop's an object. Extracting to a child table later
+    -- needs no re-fetch.
+    payload         JSONB,
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX transactions_league_time_idx ON transactions (league_key, timestamp DESC);
