@@ -7,6 +7,7 @@ the largest build in the project (the collectors) rather than after.
 
 ### In Progress
 
+- [ ] `init-01-collector.md` — executing `prps/prp-01-collector.md`
 - [ ] CE retrofit — `CLAUDE.md`, `docs/PLANNING.md`, `docs/TESTING.md`,
       `initials/template/`, `prps/template/` and `.claude/commands/` written;
       `docs/TASK.md` is this file. `examples/` still to come.
@@ -231,6 +232,10 @@ $0/month. The budget is **request volume**, not money — see `docs/PLANNING.md`
 
 ### Known Issues
 
+- **The collect timer is disabled (2026-10-08, PRP-01 Step 0).** Once the
+  collector works, the next timer run would be an unescalated fifteen-league
+  sweep (D-21a). Re-enable with `systemctl --user enable --now
+  tilastokeskus-collect.timer` only after PRP-01 Steps 9 and 10 pass
 - **Discord webhook URL leaked into a chat transcript** during the spike. Rotate
   it: delete in Discord, create a new one, update `.env`. Write-only to one
   channel, so the blast radius is spam, but rotate anyway
