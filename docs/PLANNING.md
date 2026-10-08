@@ -98,15 +98,24 @@ Ten tables plus `schema_migrations`. Yahoo keys are the primary keys, stored
 exactly as returned with the `game_key` prefix intact — `470.l.{id}` for 2026,
 `461` for 2025. Never hardcode a game key (D-11).
 
+Revised 2026-10-07 against the spike payloads (D-33). `standings`, `matchups` and
+`player_weekly_stats` were not fetched by the spike and are still unvalidated.
+No CHECK constraints on Yahoo enumerations: an unobserved value raises in the
+collector with a reason (D-38) rather than failing at insert.
+
 ### leagues
 ```
 PK: league_key            TEXT        '470.l.123456'
     season                INT         never a constant (D-03)
     name, num_teams
     scoring_type          TEXT        'head' observed in all 15
-    draft_type            TEXT        from /settings, not the league resource
     current_week          INT         source of truth for "what week is it" (D-24a)
-    start_week, end_week, playoff_start_week
+    start_week, end_week
+  from /settings, not the league resource — NULL until fetched, never defaulted:
+    draft_type            TEXT        'live' observed, in one league only
+    is_auction_draft      BOOLEAN     its own field, not a draft_type value
+    playoff_start_week    INT
+    settings_fetched_at   TIMESTAMPTZ /settings fetched once per season; NULL = not yet
     tier                  TEXT        presentation only, never affects collection (D-54)
     is_finished           BOOLEAN
     updated_at            TIMESTAMPTZ
@@ -119,8 +128,13 @@ FK: league_key → leagues
     team_id, name, manager_name, logo_url
     is_owned_by_me        BOOLEAN     from is_owned_by_current_login, which is
                                       ABSENT on teams you don't own, not 0
+    draft_position, draft_grade, has_draft_grade, draft_recap_url
+                                      fixed once drafted, so here and not in the
+                                      weekly standings snapshot
     updated_at            TIMESTAMPTZ
 INDEX: (league_key)
+UNIQUE INDEX: (league_key) WHERE is_owned_by_me — at most one owned team per
+       league. "At least one" is not expressible; the collector asserts it
 ```
 
 ### standings
@@ -130,8 +144,11 @@ PK: (team_key, week)      snapshot per week, not one mutable row, so rank over
 FK: league_key, team_key
     rank, wins, losses, ties
     points_for, points_against    NUMERIC(8,2) (D-13)
-    streak                TEXT        Yahoo returns {type, value} — flattened
+    streak_type, streak_value         TEXT, INT — Yahoo returns {type, value}
+    playoff_seed          INT
+    clinched_playoffs     BOOLEAN
     waiver_priority, faab_balance
+    number_of_moves, number_of_trades INT — change weekly, so snapshotted here
     captured_at           TIMESTAMPTZ
 ```
 
@@ -181,7 +198,8 @@ PK: (league_key, pick)
 FK: league_key, team_key, player_key
     round, cost           cost is auction only — unobserved. One league's
                           settings show a non-auction draft; fourteen unchecked
-NOTE: picks carry no player names, so players must be populated first
+NOTE: picks carry only pick, round, team key and player key — no names, so
+      players must be populated first
 ```
 
 ### transactions
@@ -192,8 +210,10 @@ FK: league_key
                                       observed); 'commish' never appeared
     status, timestamp     TIMESTAMPTZ converted from epoch seconds (D-14)
     faab_bid              INT
-    payload               JSONB       shape varies: an add's player detail is a
-                                      list, a drop's is an object, same txn
+    payload               JSONB       the whole transaction, kept deliberately.
+                                      Shape varies: an add's player detail is a
+                                      list, a drop's an object, same txn.
+                                      A child table later needs no re-fetch
     updated_at            TIMESTAMPTZ
 INDEX: (league_key, timestamp DESC)
 ```

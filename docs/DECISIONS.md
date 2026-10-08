@@ -1022,3 +1022,36 @@ are epoch seconds as strings (D-14); `current_week` is on the league resource as
 
 Still unobserved: `player_weekly_stats` (not part of this spike), an auction draft, a FAAB league,
 a `points` league, and any throttling — eleven requests, no 999, no 429, no `Retry-After`.
+
+**Revision, 2026-10-08 — `001_initial.sql` edited in place, not a `002`.** All tables were empty
+(row counts checked before the drop), so the database was dropped and recreated with the read-only
+grants and default privileges applied before the migration (D-41), and the probe-table check re-run.
+`CONNECT` and schema `USAGE` were granted as `postgres`; `ALTER DEFAULT PRIVILEGES` was applied by
+`tilasto_app` for its own role, after a line-wrapped paste dropped it from the privileged command.
+Same resulting `pg_default_acl` entry, and it was verified present before `tilasto migrate` ran.
+Result: 11 tables, 24 indexes (the 23 before plus the partial unique index), 15 foreign keys, all
+owned by `tilasto_app`; `tilasto_ro` holds SELECT on every table and no write privilege on any, and
+a probe table created after the migration was readable and not writable.
+
+- `leagues` gains `is_auction_draft` and `settings_fetched_at`. `draft_type`, `is_auction_draft` and
+  `playoff_start_week` come from `/settings`, which is fetched once per season; all three stay NULL
+  until it is, and none has a default, so "not yet fetched" cannot read as "not an auction" (finding 4)
+- `teams` gains `draft_position`, `draft_grade`, `has_draft_grade`, `draft_recap_url` — fixed once
+  the draft is done, so on the team rather than in the weekly snapshot. `is_owned_by_me` keeps its
+  name: it is our meaning, sourced from `is_owned_by_current_login` (finding 3). A partial unique
+  index, `teams_owned_one_per_league_idx`, makes a second owned team in a league a constraint
+  violation. It enforces **at most one**; **at least one** cannot be a constraint, so the collector
+  must still assert it
+- `standings` splits `streak` into `streak_type` / `streak_value` and gains `playoff_seed`,
+  `clinched_playoffs`, `number_of_moves`, `number_of_trades`. `number_of_moves` and
+  `number_of_trades` were observed on the teams resource (finding 8: mixed int and string). The
+  standings resource itself was **not** fetched by the spike, so the other columns are designed
+  from Yahoo's documented shape rather than an observed payload
+- No CHECK constraints on `scoring_type`, `draft_type` or `transactions.type`. An unobserved value
+  raises in the collector with a reason (D-38) rather than at insert. This matters more because
+  draft type is confirmed in one league only
+- Comments corrected for findings 1, 2, 5, 6 and 9, and for `matchups.result` (derived from
+  `winner_team_key`, not fetched)
+
+Not changed: `standings`, `matchups` and `player_weekly_stats` remain unvalidated against observed
+payloads. This entry stays **Open** until they are.

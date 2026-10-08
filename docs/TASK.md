@@ -14,7 +14,8 @@ the largest build in the project (the collectors) rather than after.
       entry stays so a restored copy cannot be committed
 - [x] Move `DECISIONS.md` and `TASKS.md` from repo root into `docs/`, renaming
       `TASKS.md` → `TASK.md` to match the template set
-- [ ] Revise `001_initial.sql` against the ten spike findings (D-33) — **must
+- [x] **Done 2026-10-08** — edited in place, database recreated, D-41 probe passed.
+      Revise `001_initial.sql` against the ten spike findings (D-33) — **must
       land before any collector writes a row**; the tables are empty, so this is
       still an edit rather than a `002`
 
@@ -219,8 +220,10 @@ $0/month. The budget is **request volume**, not money — see `docs/PLANNING.md`
 - **Discord webhook URL leaked into a chat transcript** during the spike. Rotate
   it: delete in Discord, create a new one, update `.env`. Write-only to one
   channel, so the blast radius is spam, but rotate anyway
-- **`001_initial.sql` is behind the spike findings.** Ten differences recorded,
-  none applied. Free to fix while tables are empty; a real `002` afterwards
+- **`--refresh-settings` does not exist yet.** `/settings` is fetched once per
+  season (`leagues.settings_fetched_at`), but commissioners can edit settings
+  mid-season, so the once-per-season rule needs an escape hatch. Belongs with
+  the settings-fetch work, not the schema revision
 - **`examples/` is referenced by `CLAUDE.md` and `docs/PLANNING.md` but does not
   exist.** Needs at least one real pattern — the upsert shape, the retry policy,
   a parse-by-name helper
