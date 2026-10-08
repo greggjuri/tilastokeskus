@@ -28,8 +28,8 @@ CREATE TABLE leagues (
     -- draft_type, is_auction_draft and playoff_start_week come from /settings, not the league
     -- resource. NULL until settings_fetched_at is set; never defaulted, so "not fetched" cannot
     -- read as "not an auction".
-    draft_type      TEXT,                      -- 'live' observed, in one league only
-    is_auction_draft BOOLEAN,                  -- its own field in /settings, not a draft_type value
+    draft_type      TEXT,                      -- 'live' in all fifteen leagues
+    is_auction_draft BOOLEAN,                  -- its own field in /settings; '0' in all fifteen
     current_week    INT,
     start_week      INT,
     end_week        INT,
@@ -70,7 +70,8 @@ CREATE TABLE players (
     player_key      TEXT PRIMARY KEY,          -- e.g. '470.p.31002' — season-scoped (2026)
     player_id       INT,                       -- stable across seasons; join on this
     full_name       TEXT NOT NULL,
-    position        TEXT,                      -- 'QB','RB','WR','TE','K','DEF'
+    position        TEXT,                      -- 'QB','RB','WR','TE','K','DEF'; one league has a 'D'
+                                               -- slot, so defensive positions will appear too
     eligible_positions TEXT[],                 -- includes slots like 'W/R/T' and 'IR', so it
                                                -- cannot derive position
     nfl_team        TEXT,
