@@ -3,9 +3,10 @@
 Every run is bounded by a CollectionPlan — which leagues, which weeks, which tables. A live
 run and a backfill differ only in the plan they are given (docs/DECISIONS.md D-18).
 
-The collectors themselves are not implemented yet; they need real API payloads to be written
-against (D-33). What exists here is the plan, the run record, and the shape the collectors
-will fill in.
+PRP-01 collects ``leagues`` and ``teams``: discover the season's leagues, then for each one fetch,
+archive, parse and commit before moving to the next. A league that fails is recorded and skipped;
+the leagues before it stay committed. Every run that reaches the database writes a
+``collector_runs`` row — success, partial or failed (D-22).
 """
 
 from __future__ import annotations
@@ -13,9 +14,28 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
-from .config import Settings
-from .db import connect
+import psycopg
+
+from .parse import (
+    LeagueSettings,
+    parse_discovery,
+    parse_league_meta,
+    parse_settings,
+    parse_teams,
+)
+from .ratelimit import RateLimitExhausted
+from .store import (
+    leagues_needing_settings,
+    store_league_settings,
+    upsert_league_meta,
+    upsert_teams,
+)
+from .transport import AuthenticationFailed
 from .yahoo import YahooClient
+
+
+class UnknownLeague(ValueError):
+    """A --league key that is not one of the season's leagues. A usage error, not a run."""
 
 
 @dataclass(frozen=True)
@@ -71,46 +91,119 @@ class RunResult:
     leagues_synced: int = 0
     rows_written: int = 0
     error: str | None = None
-    warnings: list[str] = field(default_factory=list)
+    leagues_planned: int = 0
+    failed_leagues: list[tuple[str, str]] = field(default_factory=list)
 
 
-def record_run(settings: Settings, result: RunResult) -> int:
+def record_run(conn: psycopg.Connection, result: RunResult) -> int:
     """Write a run to collector_runs. Called on success and on failure alike (D-22)."""
-    with connect(settings) as conn, conn.cursor() as cur:
-        cur.execute(
-            """
-            INSERT INTO collector_runs
-                (started_at, finished_at, status, leagues_synced, rows_written, error)
-            VALUES (%s, %s, %s, %s, %s, %s)
-            RETURNING id
-            """,
-            (
-                result.started_at,
-                result.finished_at,
-                result.status,
-                result.leagues_synced,
-                result.rows_written,
-                result.error,
-            ),
-        )
-        return cur.fetchone()[0]
+    row = conn.execute(
+        """
+        INSERT INTO collector_runs
+            (started_at, finished_at, status, leagues_synced, rows_written, error)
+        VALUES (%s, %s, %s, %s, %s, %s)
+        RETURNING id
+        """,
+        (result.started_at, result.finished_at, result.status, result.leagues_synced,
+         result.rows_written, result.error),
+    ).fetchone()
+    return row[0]
 
 
-def run(settings: Settings, plan: CollectionPlan) -> RunResult:
-    """Execute a collection plan, recording the outcome whatever happens."""
-    result = RunResult(started_at=datetime.now(UTC))
-    client = YahooClient(settings)
+def select_leagues(discovered: list[str], requested: list[str] | None) -> list[str]:
+    """Every discovered league, or the requested ones — each of which must have been discovered."""
+    if requested is None:
+        return list(discovered)
+    unknown = [key for key in requested if key not in discovered]
+    if unknown:
+        raise UnknownLeague(f"not a league of this season on this account: {', '.join(unknown)}")
+    return list(dict.fromkeys(requested))
 
+
+def collect_league(conn: psycopg.Connection, client: YahooClient, league_key: str,
+                   season: int, fetch_settings: bool) -> int:
+    """Fetch, archive and parse everything for one league, then write it. Returns rows written.
+
+    Everything is fetched and parsed before anything is written, so a parse failure leaves the
+    league's rows exactly as they were.
+    """
+    payload = client.teams(league_key)
+    meta = parse_league_meta(payload, league_key)
+    if meta.season != season:
+        raise ValueError(f"league {league_key} reports season {meta.season}, run is {season}")
+    teams = parse_teams(payload, meta)
+    settings: LeagueSettings | None = None
+    if fetch_settings:
+        settings = parse_settings(client.settings(league_key), league_key)
+
+    rows = upsert_league_meta(conn, meta)
+    if settings is not None:
+        rows += store_league_settings(conn, league_key, settings)
+    return rows + upsert_teams(conn, league_key, teams)
+
+
+def decide_status(result: RunResult) -> str:
+    if result.leagues_synced == 0 or result.rows_written == 0:
+        # A run that "succeeds" and writes nothing is a failure: the leagues are known to exist.
+        return "failed"
+    if result.failed_leagues or result.leagues_synced < result.leagues_planned:
+        return "partial"
+    return "success"
+
+
+def run(plan: CollectionPlan, client: YahooClient, conn: psycopg.Connection,
+        started_at: datetime | None = None) -> RunResult:
+    """Execute a collection plan, recording the outcome whatever happens.
+
+    ``conn`` should be in autocommit mode, so each league's ``transaction()`` commits on its own.
+
+    Raises — after recording the run — on failures that are not one league's: authentication
+    (D-29), exhausted backoff (stopping is the point of the limit), a lost database connection,
+    and anything before the league loop. An unknown ``--league`` raises without recording: it is
+    a usage error, not a run.
+    """
+    if plan.weeks is not None or plan.draft_only:
+        raise NotImplementedError(
+            "--weeks and --draft-only collect week-scoped and draft tables, which do not exist "
+            "yet: draft picks are init-02, backfill is phase 5. See docs/TASK.md.")
+
+    result = RunResult(started_at=started_at or datetime.now(UTC))
     try:
-        # Collectors run in dependency order: leagues -> teams -> players ->
-        # draft_picks -> rosters -> matchups/standings/stats.
-        client.league_keys(plan.season)
-        raise NotImplementedError("collectors are not implemented yet")
-    except Exception as exc:
-        result.status = "failed"
-        result.error = f"{type(exc).__name__}: {exc}"
+        discovery = parse_discovery(client.discover(plan.season), plan.season)
+        keys = select_leagues(discovery.league_keys, plan.league_keys)
+    except UnknownLeague:
         raise
-    finally:
-        result.finished_at = datetime.now(UTC)
+    except Exception as exc:
+        _finish(conn, result, exc)
+        raise
 
+    result.leagues_planned = len(keys)
+    try:
+        need_settings = leagues_needing_settings(conn, keys)
+        for key in keys:
+            try:
+                with conn.transaction():
+                    rows = collect_league(conn, client, key, plan.season, key in need_settings)
+            except (AuthenticationFailed, RateLimitExhausted, psycopg.OperationalError):
+                raise
+            except Exception as exc:  # noqa: BLE001 - one league's failure is recorded, not fatal
+                result.failed_leagues.append((key, f"{type(exc).__name__}: {exc}"))
+                continue
+            result.leagues_synced += 1
+            result.rows_written += rows
+    except Exception as exc:
+        _finish(conn, result, exc)
+        raise
+
+    _finish(conn, result, None)
     return result
+
+
+def _finish(conn: psycopg.Connection, result: RunResult, exc: BaseException | None) -> None:
+    result.finished_at = datetime.now(UTC)
+    result.status = "failed" if exc is not None else decide_status(result)
+    errors = [f"{key}: {message}" for key, message in result.failed_leagues]
+    if exc is not None:
+        errors.insert(0, f"{type(exc).__name__}: {exc}")
+    result.error = "; ".join(errors) or None
+    record_run(conn, result)
