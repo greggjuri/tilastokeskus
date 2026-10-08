@@ -60,6 +60,9 @@ Phases 0–3 predate the CE workflow and have no specs.
 - [x] Live: one league twice (3 then 2 requests), then all fifteen twice (30
       then 16 requests). 15 leagues, 150 teams, exactly one owned per league;
       re-runs change no counts. No retries, no throttling in 50 requests
+- [x] Rows checked against Yahoo's own league page by the owner — names,
+      managers, the owned team, draft order and grades matched. Done outside
+      the AI tool, so no league data entered it (D-49)
 - [x] Collect timer re-enabled; first scheduled run 2026-10-09 00:11
 - [x] 316 tests, 91% coverage, ruff clean
 
