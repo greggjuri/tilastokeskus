@@ -1101,3 +1101,20 @@ not that it works.
 the interval holds between Fantasy API calls. A retry is paced the same way, and an elapsed
 backoff still counts toward the gap rather than stacking on it. The refresh itself, to the login
 host, is not paced.
+
+**Teams across all fifteen leagues, and 2025 discovery, 2026-10-08.** Read-only probe before PRP-01:
+`/teams` for every league, archived to `raw/2026-10-08/teams/`, and
+`/users;use_login=1/games;game_codes=nfl;seasons=2025/leagues`, archived to
+`raw/2026-10-08/discovery/`. Sixteen requests, all `200`, nothing written to the database.
+
+- **Teams are uniform across the fifteen.** 150 teams; every `count` matches its entries and its
+  league's `num_teams`; every team's metadata is 24 entries; one manager and one logo per team.
+  Exactly one team per league carries `is_owned_by_current_login`, as the int `1`
+- **More absent-not-zero fields**: `previous_season_team_rank` on 8 teams; `is_current_login` on
+  the owned team's manager; `is_commissioner` on one manager
+- **`number_of_trades`** is an int on 135 teams and a string on 15 — finding 8, measured
+- **`is_finished` observed**: `1` on all six finished 2025 leagues, absent on all fifteen 2026
+  leagues. Absent means not finished — now observed, not assumed
+- **`current_week` changes type between seasons**: an int in 2026, the string `'17'` in 2025
+- **The `seasons` filter works on the discovery path**: game key `461`, six leagues, all `461.l.*`
+- **Pacing, first live run after the fix**: fifteen gaps, all exactly 1.000s; retry log empty

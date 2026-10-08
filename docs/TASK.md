@@ -21,14 +21,15 @@ the largest build in the project (the collectors) rather than after.
 
 ### Up Next
 
-- [ ] `init-01-collector.md` - Phase 4: leagues → teams → players →
-      draft_picks → rosters, in foreign-key order, idempotent upserts
+- [ ] `init-01-collector.md` - Phase 4: collection infrastructure, `leagues`
+      and `teams`. PRP ready (`prps/prp-01-collector.md`, 8.8). Players, draft
+      picks and rosters follow in `init-02`
 
 ---
 
 ## Spec Numbering
 
-**Next free number: `01`**
+**Next free number: `02`**
 
 Numbers are assigned in the order work is **taken up**, not the order specs are
 written — a backlog item has a slug but no number until then. The PRP inherits
@@ -39,13 +40,20 @@ record that something was tried and dropped.
 
 | nn | Slug | Init | PRP | Status |
 |----|------|------|-----|--------|
-| 01 | collector | — | — | not yet claimed |
+| 01 | collector | [init](../initials/init-01-collector.md) | [PRP](../prps/prp-01-collector.md) | PRP ready, 8.8 — open questions answered |
 
 Phases 0–3 predate the CE workflow and have no specs.
 
 ---
 
 ## Recently Completed
+
+### Phase 3 — Teams across all fifteen leagues (2026-10-08)
+- [x] Read-only `/teams` probe of all fifteen, archived to `raw/2026-10-08/teams/`;
+      uniform, exactly one owned team per league. Deviations recorded in D-33
+- [x] 2025 discovery: `is_finished` is `1` when a season is over and absent
+      before; the `seasons` filter works on the discovery path
+- [x] Pacer fix confirmed live: fifteen gaps, all exactly 1.000s
 
 ### Phase 3 — Settings across all fifteen leagues (2026-10-08)
 - [x] `/settings` fetched for all fifteen, archived to `raw/2026-10-08/settings/`
