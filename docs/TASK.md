@@ -21,14 +21,15 @@ the largest build in the project (the collectors) rather than after.
 
 ### Up Next
 
-- [ ] `{collector}` - init-02: `players`, `draft_picks`, `rosters` on the PRP-01
-      machinery. Not yet claimed — claim `02` from Spec Numbering when taken up
+- [ ] `init-02-draft.md` - `players` and `draft_picks`, one request per league.
+      PRP ready (`prps/prp-02-draft.md`, 8.8)
+- [ ] `{rosters}` - init-03: `rosters`, with week semantics. Not yet claimed
 
 ---
 
 ## Spec Numbering
 
-**Next free number: `02`**
+**Next free number: `03`**
 
 Numbers are assigned in the order work is **taken up**, not the order specs are
 written — a backlog item has a slug but no number until then. The PRP inherits
@@ -40,12 +41,17 @@ record that something was tried and dropped.
 | nn | Slug | Init | PRP | Status |
 |----|------|------|-----|--------|
 | 01 | collector | [init](../initials/init-01-collector.md) | [PRP](../prps/prp-01-collector.md) | **Complete** 2026-10-08 |
+| 02 | draft | [init](../initials/init-02-draft.md) | [PRP](../prps/prp-02-draft.md) | PRP ready, 8.8 — open questions answered |
 
 Phases 0–3 predate the CE workflow and have no specs.
 
 ---
 
 ## Recently Completed
+
+### First scheduled collection (2026-10-09)
+- [x] The timer ran the collector at 00:12: success, 15/15 leagues, 165 rows,
+      16 requests, retry log empty, 15s
 
 ### Transport request timeout (2026-10-08)
 - [x] Every API GET and token POST carries `(10s connect, 30s read)`; validated
@@ -254,8 +260,6 @@ $0/month. The budget is **request volume**, not money — see `docs/PLANNING.md`
 
 ### Known Issues
 
-- **The first scheduled collection is 2026-10-09 00:11.** Check the journal and
-  `collector_runs` the next morning — the timer path has not run the collector
 - **Discord webhook URL leaked into a chat transcript** during the spike. Rotate
   it: delete in Discord, create a new one, update `.env`. Write-only to one
   channel, so the blast radius is spam, but rotate anyway
