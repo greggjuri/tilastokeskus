@@ -6,8 +6,9 @@ Fetches and archives; it does not parse. Every response is written to the raw ar
 method returns it (D-20), so a parsing bug downstream costs a re-parse, not a re-fetch. Requests
 go through ``YahooTransport``: paced, backed off on 999 and 429, loud on auth failure (D-21, D-29).
 
-Implemented for PRP-01: discovery, league settings, teams. The rest raise until their collectors
-exist — players, draft picks and rosters in init-02, standings and matchups in phase 7.
+Implemented: discovery, league settings, teams (PRP-01), the draft with its players (PRP-02).
+The rest raise until their collectors exist — rosters in init-03, standings and matchups in
+phase 7, transactions unscheduled.
 """
 
 from __future__ import annotations
@@ -65,8 +66,13 @@ class YahooClient:
         """Every team in a league, with the league's metadata alongside."""
         return self._fetch(f"league/{league_key}/teams", "teams", league_key)
 
-    def draft_results(self, league_key: str) -> list[dict]:
-        raise YahooCollectorNotImplemented("fetching draft results")
+    def draft(self, league_key: str) -> object:
+        """Every pick with its player nested — one request for both tables (PRP-02).
+
+        Not ``/players;player_keys=``: that collection silently returns 25 players however many
+        keys are asked for.
+        """
+        return self._fetch(f"league/{league_key}/draftresults/players", "draftresults", league_key)
 
     def roster(self, team_key: str, week: int) -> list[dict]:
         raise YahooCollectorNotImplemented("fetching a roster")

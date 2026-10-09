@@ -50,6 +50,7 @@ def client(tmp_path, transport=None):
      "discovery/nfl-2025.json.gz"),
     ("settings", "470.l.1", "league/470.l.1/settings", "settings/470.l.1.json.gz"),
     ("teams", "470.l.1", "league/470.l.1/teams", "teams/470.l.1.json.gz"),
+    ("draft", "470.l.1", "league/470.l.1/draftresults/players", "draftresults/470.l.1.json.gz"),
 ])
 def test_fetches_the_path_and_archives_before_returning(tmp_path, method, arg, path, archived):
     transport = FakeTransport({"fantasy_content": {"marker": method}})
@@ -87,13 +88,12 @@ def test_open_builds_a_real_transport_and_archive(tmp_path):
 # ---- not yet implemented: raise with a reason and a pointer (D-38) ---------------------------
 
 STUBS = [
-    ("draft_results", ("470.l.1",), "fetching draft results"),
     ("roster", ("470.l.1.t.1", 1), "fetching a roster"),
     ("standings", ("470.l.1", 1), "fetching standings"),
     ("scoreboard", ("470.l.1", 1), "fetching a scoreboard"),
     ("transactions", ("470.l.1",), "fetching transactions"),
 ]
-IMPLEMENTED = {"open", "discover", "settings", "teams"}
+IMPLEMENTED = {"open", "discover", "settings", "teams", "draft"}
 
 
 @pytest.mark.parametrize(("method", "args", "operation"), STUBS)
