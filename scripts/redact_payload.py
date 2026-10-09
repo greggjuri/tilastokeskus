@@ -42,26 +42,41 @@ KEEP = {
     "coverage_type", "coverage_value", "league_scoring_type", "draft_position", "has_draft_grade",
     "draft_grade", "is_current_login", "is_commissioner", "previous_season_team_rank",
     "invite_permission", "size", "team_id", "is_disabled", "roster_type",
+    # Draft and player structure (PRP-02). NFL team abbreviations and positions are public
+    # enumerations, not anything about a league or its members.
+    "pick", "round", "primary_position", "display_position", "editorial_team_abbr",
 }
 
 KEY_RE = re.compile(r"^(\d+)\.l\.(\d+)((?:\.[a-z]+\.\d+)*)$")
+PLAYER_KEY_RE = re.compile(r"^(\d+)\.p\.(\d+)$")
 
 
 class Redactor:
     def __init__(self) -> None:
         self.league_ids: dict[str, str] = {}
+        self.player_ids: dict[str, str] = {}
         self.removed: dict[str, str] = {}      # redacted value -> field it came from
 
     def fake_league_id(self, real: str) -> str:
         return self.league_ids.setdefault(real, str(100001 + len(self.league_ids)))
+
+    def fake_player_id(self, real: str) -> str:
+        # One map for keys and ids alike, so a fixture's player_key suffix still equals its
+        # player_id — a check the parser makes.
+        return self.player_ids.setdefault(real, str(900001 + len(self.player_ids)))
 
     def scalar(self, field: str | None, value: object) -> object:
         if isinstance(value, str):
             key = KEY_RE.match(value)
             if key:
                 return f"{key[1]}.l.{self.fake_league_id(key[2])}{key[3]}"
+            player = PLAYER_KEY_RE.match(value)
+            if player:
+                return f"{player[1]}.p.{self.fake_player_id(player[2])}"
         if field == "league_id" and isinstance(value, str):
             return self.fake_league_id(value)
+        if field == "player_id" and isinstance(value, str):
+            return self.fake_player_id(value)
         if field in KEEP or value is None or isinstance(value, bool):
             return value
         if isinstance(value, int):

@@ -131,3 +131,45 @@ def test_db_fixture_fails_rather_than_skips_when_postgres_is_unreachable(monkeyp
         throwaway_schema(),
     ):
         pass
+
+
+# ---- draft fixture (PRP-02) ------------------------------------------------------------------
+
+def _draft_picks():
+    league = load_fixture("draft_idp")["fantasy_content"]["league"]
+    block = next(e["draft_results"] for e in league if "draft_results" in e)
+    return [block[k]["draft_result"] for k in block if k.isdigit()]
+
+
+def _drafted_player(pick):
+    return flat(pick["0"]["players"]["0"]["player"][0])
+
+
+def test_draft_fixture_has_190_picks_each_with_its_player_nested():
+    picks = _draft_picks()
+    assert len(picks) == 190
+    assert all(_drafted_player(p)["player_key"] == p["player_key"] for p in picks)
+
+
+def test_draft_fixture_keeps_the_idp_hazards():
+    players = [_drafted_player(p) for p in _draft_picks()]
+    assert sum(p["primary_position"] == "D" for p in players) == 9
+    assert any("," in p["display_position"] for p in players)
+    assert {type(p["uniform_number"]) for p in players} == {str, bool}
+    assert sum("linked_player" in p for p in players) == 1
+
+
+def test_draft_fixture_player_keys_still_end_in_their_player_id():
+    """The redactor rewrites keys and ids through one map, so the parser's check still holds."""
+    players = [_drafted_player(p) for p in _draft_picks()]
+    assert all(p["player_key"].split(".")[-1] == p["player_id"] for p in players)
+    assert all(p["player_key"].startswith("470.p.9") for p in players)
+
+
+def test_redactor_maps_player_keys_and_ids_consistently():
+    r = redact_payload.Redactor()
+    out = r.walk({"player_key": "470.p.31002", "player_id": "31002",
+                  "linked": {"player_key": "470.p.31002"}, "other": "470.p.555"})
+    assert out["player_key"] == "470.p.900001" == out["linked"]["player_key"]
+    assert out["player_id"] == "900001"
+    assert out["other"] == "470.p.900002"
