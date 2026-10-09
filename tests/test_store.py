@@ -7,10 +7,14 @@ import pytest
 from conftest import load_fixture
 
 from tilastokeskus.parse import parse_league_meta, parse_settings, parse_teams
+from tilastokeskus.parse_draft import parse_draft
 from tilastokeskus.store import (
+    leagues_needing_draft,
     leagues_needing_settings,
     store_league_settings,
+    upsert_draft_picks,
     upsert_league_meta,
+    upsert_players,
     upsert_teams,
 )
 
@@ -141,3 +145,76 @@ def test_migration_002_renames_eligible_positions_to_nfl_positions(db):
 def test_migrations_apply_in_filename_order():
     from tilastokeskus import migrate
     assert [m.version for m in migrate.discover()][:2] == ["001_initial", "002_players_nfl_positions"]
+
+
+# ---- players and draft picks (PRP-02) --------------------------------------------------------
+
+
+
+def idp_league(db):
+    """The IDP league written as PRP-01 would: metadata and its ten teams. Returns (meta, draft)."""
+    teams_payload = load_fixture("teams_previous_rank")
+    key = teams_payload["fantasy_content"]["league"][0]["league_key"]
+    meta = parse_league_meta(teams_payload, key)
+    upsert_league_meta(db, meta)
+    upsert_teams(db, key, parse_teams(teams_payload, meta))
+    return meta, parse_draft(load_fixture("draft_idp"), meta, "470")
+
+
+def draft_counts(db):
+    return tuple(db.execute(f"SELECT count(*) FROM {t}").fetchone()[0]
+                 for t in ("players", "draft_picks"))
+
+
+def test_draft_writes_players_then_picks(db):
+    meta, (players, picks) = idp_league(db)
+    assert upsert_players(db, players) == 190
+    assert upsert_draft_picks(db, meta.league_key, picks) == 190
+    assert draft_counts(db) == (190, 190)
+    orphans = db.execute("SELECT count(*) FROM draft_picks d LEFT JOIN players p USING (player_key) "
+                         "WHERE p.player_key IS NULL").fetchone()[0]
+    assert orphans == 0
+
+
+def test_draft_twice_changes_no_row_counts_or_values(db):
+    meta, (players, picks) = idp_league(db)
+    for _ in range(2):
+        upsert_players(db, players)
+        upsert_draft_picks(db, meta.league_key, picks)
+    assert draft_counts(db) == (190, 190)
+    row = db.execute("SELECT position, nfl_positions FROM players WHERE position = 'DT,DE'")
+    assert row.fetchone() == ("DT,DE", ["DT", "DE"])
+
+
+def test_a_pick_before_its_player_is_refused_by_the_foreign_key(db):
+    meta, (_, picks) = idp_league(db)
+    with pytest.raises(psycopg.errors.ForeignKeyViolation, match="player_key"):
+        upsert_draft_picks(db, meta.league_key, picks[:1])
+
+
+def test_the_same_player_from_two_leagues_is_one_row(db):
+    _, (players, _) = idp_league(db)
+    upsert_players(db, players[:5])
+    upsert_players(db, players[:5])              # as a second league drafting the same five
+    assert draft_counts(db)[0] == 5
+
+
+def test_empty_and_stray_draft_input_is_refused(db):
+    meta, (_, picks) = idp_league(db)
+    with pytest.raises(ValueError, match="no players"):
+        upsert_players(db, [])
+    with pytest.raises(ValueError, match="no draft picks"):
+        upsert_draft_picks(db, meta.league_key, [])
+    with pytest.raises(ValueError, match="do not belong"):
+        upsert_draft_picks(db, "470.l.424242", picks)
+
+
+def test_leagues_needing_draft(db):
+    meta, (players, picks) = idp_league(db)
+    other = "470.l.424242"
+    assert leagues_needing_draft(db, [meta.league_key, other]) == {meta.league_key, other}
+    upsert_players(db, players)
+    upsert_draft_picks(db, meta.league_key, picks)
+    assert leagues_needing_draft(db, [meta.league_key, other]) == {other}
+    db.execute("DELETE FROM draft_picks")        # purged picks: the gate reopens on its own
+    assert leagues_needing_draft(db, [meta.league_key]) == {meta.league_key}
