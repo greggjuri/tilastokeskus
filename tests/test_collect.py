@@ -79,6 +79,19 @@ class FakeClient:
         payload = rekey(payload, payload["fantasy_content"]["league"][0]["league_key"], key)
         return self._maybe_fail("settings", key, payload)
 
+    def draft(self, key):
+        """The IDP draft moved to `key`. Its 190 players are the same in every league, which is
+        also what players shared between leagues look like."""
+        self.calls.append(("draft", key))
+        payload = load_fixture("draft_idp")
+        payload = rekey(payload, payload["fantasy_content"]["league"][0]["league_key"], key)
+        return self._maybe_fail("draft", key, payload)
+
+
+def draft_counts(db):
+    return tuple(db.execute(f"SELECT count(*) FROM {t}").fetchone()[0]
+                 for t in ("players", "draft_picks"))
+
 
 def plan(keys=None):
     return CollectionPlan(season=2026, league_keys=keys)
@@ -101,9 +114,11 @@ def points_scoring(payload):
 def test_every_league_succeeds(db):
     keys = DISCOVERED[:3]
     result = run(plan(keys), FakeClient(), db)
-    assert (result.status, result.leagues_synced, result.rows_written) == ("success", 3, 36)
+    # Per league: metadata, settings, ten teams, 190 players, 190 picks.
+    assert (result.status, result.leagues_synced, result.rows_written) == ("success", 3, 3 * 392)
     assert table_counts(db) == (3, 30)
-    assert runs(db) == [("success", 3, 36, None)]
+    assert draft_counts(db) == (190, 3 * 190)            # players are shared, picks are not
+    assert runs(db) == [("success", 3, 1176, None)]
 
 
 def test_all_fifteen_with_no_league_flag(db):
@@ -231,3 +246,74 @@ def test_decide_status(synced, rows, failed, planned, expected):
     result = RunResult(started_at=datetime.now(UTC), leagues_synced=synced, rows_written=rows,
                        failed_leagues=failed, leagues_planned=planned)
     assert decide_status(result) == expected
+
+
+# ---- drafts (PRP-02) -------------------------------------------------------------------------
+
+def unobserved_position(payload):
+    block = next(e["draft_results"] for e in payload["fantasy_content"]["league"]
+                 if "draft_results" in e)
+    for item in block["0"]["draft_result"]["0"]["players"]["0"]["player"][0]:
+        if isinstance(item, dict) and "primary_position" in item:
+            item["primary_position"] = "IDP"
+    return payload
+
+
+def test_drafts_are_collected_once(db):
+    keys = DISCOVERED[:2]
+    first, second = FakeClient(), FakeClient()
+    run(plan(keys), first, db)
+    run(plan(keys), second, db)
+    assert sorted(k for m, k in first.calls if m == "draft") == sorted(keys)
+    assert [c for c in second.calls if c[0] == "draft"] == []
+    assert draft_counts(db) == (190, 380)
+
+
+def test_a_failed_draft_keeps_the_leagues_teams_and_reads_partial(db):
+    keys = DISCOVERED[:2]
+    client = FakeClient(fail={("draft", keys[0]): unobserved_position})
+    result = run(plan(keys), client, db)
+
+    assert result.status == "partial"
+    assert result.leagues_synced == 2                    # both leagues' teams committed
+    assert db.execute("SELECT count(*) FROM teams WHERE league_key = %s",
+                      (keys[0],)).fetchone()[0] == 10
+    assert db.execute("SELECT count(*) FROM draft_picks WHERE league_key = %s",
+                      (keys[0],)).fetchone()[0] == 0
+    assert result.failed_leagues == [(keys[0], result.failed_leagues[0][1])]
+    assert result.failed_leagues[0][1].startswith("draft: UnexpectedPayload")
+    assert f"{keys[0]}: draft: UnexpectedPayload" in runs(db)[0][3]
+
+
+def test_a_failed_draft_is_retried_next_run(db):
+    keys = DISCOVERED[:1]
+    run(plan(keys), FakeClient(fail={("draft", keys[0]): unobserved_position}), db)
+    retry = FakeClient()
+    assert run(plan(keys), retry, db).status == "success"
+    assert ("draft", keys[0]) in retry.calls
+    assert draft_counts(db) == (190, 190)
+
+
+def test_a_teams_failure_skips_the_leagues_draft(db):
+    keys = DISCOVERED[:1]
+    client = FakeClient(fail={("teams", keys[0]): points_scoring})
+    run(plan(keys), client, db)
+    assert [c for c in client.calls if c[0] == "draft"] == []
+
+
+def test_auth_failure_during_a_draft_aborts_the_run(db):
+    keys = DISCOVERED[:2]
+    client = FakeClient(fail={("draft", keys[0]): AuthenticationFailed(401, "token_rejected")})
+    with pytest.raises(AuthenticationFailed):
+        run(plan(keys), client, db)
+    assert [c for c in client.calls if c[0] == "teams"] == [("teams", keys[0])]
+    assert runs(db)[0][0] == "failed"
+
+
+def test_settings_and_drafts_are_gated_independently(db):
+    keys = DISCOVERED[:1]
+    run(plan(keys), FakeClient(), db)
+    db.execute("DELETE FROM draft_picks")
+    again = FakeClient()
+    run(plan(keys), again, db)
+    assert [m for m, _ in again.calls if m in ("settings", "draft")] == ["draft"]

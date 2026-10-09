@@ -4,7 +4,8 @@ Every run is bounded by a CollectionPlan — which leagues, which weeks, which t
 run and a backfill differ only in the plan they are given (docs/DECISIONS.md D-18).
 
 PRP-01 collects ``leagues`` and ``teams``: discover the season's leagues, then for each one fetch,
-archive, parse and commit before moving to the next. A league that fails is recorded and skipped;
+archive, parse and commit before moving to the next. PRP-02 adds each league's draft — ``players``
+and ``draft_picks`` — once per season, in a transaction of its own after the league's teams. A league that fails is recorded and skipped;
 the leagues before it stay committed. Every run that reaches the database writes a
 ``collector_runs`` row — success, partial or failed (D-22).
 """
@@ -17,17 +18,22 @@ from datetime import UTC, datetime
 import psycopg
 
 from .parse import (
+    LeagueMeta,
     LeagueSettings,
     parse_discovery,
     parse_league_meta,
     parse_settings,
     parse_teams,
 )
+from .parse_draft import parse_draft
 from .ratelimit import RateLimitExhausted, RequestTimedOut
 from .store import (
+    leagues_needing_draft,
     leagues_needing_settings,
     store_league_settings,
+    upsert_draft_picks,
     upsert_league_meta,
+    upsert_players,
     upsert_teams,
 )
 from .transport import AuthenticationFailed
@@ -128,9 +134,15 @@ def require_buildable(plan: CollectionPlan) -> None:
             "yet: draft picks are init-02, backfill is phase 5. See docs/TASK.md.")
 
 
+# Failures that are not one league's: they abort the run after it is recorded (D-56, D-58).
+ABORTS_RUN = (AuthenticationFailed, RateLimitExhausted, RequestTimedOut, psycopg.OperationalError)
+
+
 def collect_league(conn: psycopg.Connection, client: YahooClient, league_key: str,
-                   season: int, fetch_settings: bool) -> int:
-    """Fetch, archive and parse everything for one league, then write it. Returns rows written.
+                   season: int, fetch_settings: bool) -> tuple[int, LeagueMeta]:
+    """Fetch, archive and parse one league and its teams, then write them.
+
+    Returns rows written and the league's metadata, which the draft phase needs.
 
     Everything is fetched and parsed before anything is written, so a parse failure leaves the
     league's rows exactly as they were.
@@ -147,7 +159,14 @@ def collect_league(conn: psycopg.Connection, client: YahooClient, league_key: st
     rows = upsert_league_meta(conn, meta)
     if settings is not None:
         rows += store_league_settings(conn, league_key, settings)
-    return rows + upsert_teams(conn, league_key, teams)
+    return rows + upsert_teams(conn, league_key, teams), meta
+
+
+def collect_draft(conn: psycopg.Connection, client: YahooClient, meta: LeagueMeta,
+                  game_key: str) -> int:
+    """Fetch, archive and parse a league's draft, then write players before picks."""
+    players, picks = parse_draft(client.draft(meta.league_key), meta, game_key)
+    return upsert_players(conn, players) + upsert_draft_picks(conn, meta.league_key, picks)
 
 
 def decide_status(result: RunResult) -> str:
@@ -185,18 +204,33 @@ def run(plan: CollectionPlan, client: YahooClient, conn: psycopg.Connection,
     result.leagues_planned = len(keys)
     try:
         need_settings = leagues_needing_settings(conn, keys)
+        need_draft = leagues_needing_draft(conn, keys)
         for key in keys:
             try:
                 with conn.transaction():
-                    rows = collect_league(conn, client, key, plan.season, key in need_settings)
-            except (AuthenticationFailed, RateLimitExhausted, RequestTimedOut,
-                    psycopg.OperationalError):
+                    rows, meta = collect_league(conn, client, key, plan.season,
+                                                key in need_settings)
+            except ABORTS_RUN:
                 raise
             except Exception as exc:  # noqa: BLE001 - one league's failure is recorded, not fatal
                 result.failed_leagues.append((key, f"{type(exc).__name__}: {exc}"))
                 continue
             result.leagues_synced += 1
             result.rows_written += rows
+
+            if key not in need_draft:
+                continue
+            # Its own transaction: the draft is one-shot and teams are daily, so a draft that will
+            # not parse must not also stop the league's daily refresh (PRP-02 Q3). The run still
+            # reads partial, with the failure marked as the draft's.
+            try:
+                with conn.transaction():
+                    result.rows_written += collect_draft(conn, client, meta,
+                                                         discovery.game_key)
+            except ABORTS_RUN:
+                raise
+            except Exception as exc:  # noqa: BLE001 - recorded against the league, not fatal
+                result.failed_leagues.append((key, f"draft: {type(exc).__name__}: {exc}"))
     except Exception as exc:
         _finish(conn, result, exc)
         raise

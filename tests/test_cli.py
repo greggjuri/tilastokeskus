@@ -30,6 +30,10 @@ class CountingClient(FakeClient):
         self.transport.requests_issued += 1
         return super().settings(key)
 
+    def draft(self, key):
+        self.transport.requests_issued += 1
+        return super().draft(key)
+
 
 @pytest.fixture
 def wired(db, monkeypatch, tmp_path):
@@ -61,8 +65,8 @@ def test_success_exits_zero_and_reports_requests(wired, capsys):
     _client, db = wired
     assert cli.main(["collect", "--league", DISCOVERED[0]]) == cli.EXIT_OK
     out = capsys.readouterr().out
-    assert "status: success  leagues: 1/1  rows written: 12" in out
-    assert "requests issued: 3" in out                 # discovery, teams, settings
+    assert "status: success  leagues: 1/1  rows written: 392" in out
+    assert "requests issued: 4" in out                 # discovery, teams, settings, draft
     assert "retry log: empty" in out
     assert rows(db) == (1, 10, 1)
 
