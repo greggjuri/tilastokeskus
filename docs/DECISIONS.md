@@ -593,6 +593,31 @@ and fifteen leagues each waiting out the budget would be minutes of the same fai
 
 Only timeouts are retried. A connection refused or reset still raises at once.
 
+### D-59 — A draft is one request, gated on stored picks, in its own transaction · Active
+
+Decided in PRP-02 (2026-10-09), after a read-only probe of three drafts.
+`/league/{key}/draftresults/players` returns every pick with its player nested — 190 of 190 in the
+IDP league — so a league's whole draft is one request, fetched once: a league with any
+`draft_picks` row is not fetched again, which also re-opens itself if a league's picks are purged.
+Fifteen requests a season, against an init estimate of 90 to 2,250 for a separate player fetch.
+
+That separate fetch is ruled out for a reason worth keeping: `/players;player_keys=` asked for 100
+keys returns 25, with `count=25` and no error. A batch endpoint that truncates silently is a
+request-shaped Silence Check failure.
+
+`players` is one row per player across every league (D-12), so it keeps only fields observed to
+be league-independent — identical in 50 of 50 players fetched both globally and inside a league:
+name, `display_position`, team, bye week. `eligible_positions` is league data (it carries the
+league's roster slots, and differed in 47 of 50), so it is not stored there; the column became
+`nfl_positions`, real positions from `display_position`, by migration 002 — renamed because the
+old name reads as slot eligibility.
+
+The draft is written in its own transaction after the league's teams. A draft that will not parse
+is recorded against the league and leaves its teams committed: the draft is one-shot and teams are
+daily, and coupling them would let a draft bug silently stop a league's daily data. Pick counts are
+checked against the draft itself — `num_teams` picks in every round, picks and rounds contiguous —
+which matched roster size in all four drafts probed; roster size is not stored.
+
 ---
 
 ## Auth and credentials
@@ -1079,6 +1104,16 @@ are epoch seconds as strings (D-14); `current_week` is on the league resource as
 
 Still unobserved: `player_weekly_stats` (not part of this spike), an auction draft, a FAAB league,
 a `points` league, and any throttling — eleven requests, no 999, no 429, no `Retry-After`.
+
+**Drafts and players, 2026-10-08 (PRP-02 probe).** Eight read-only requests across three leagues,
+the superflex/IDP league among them. Draft picks carry exactly `pick`, `round`, `team_key`,
+`player_key` (ints for the first two) in all four drafts now observed: 150 picks in 15 rounds for
+standard leagues, 190 in 19 for the IDP league — non-IR roster slots × ten teams. The IDP league's
+players include nine individual defenders: `primary_position` `D`, `position_type` `DP`, and a
+specific `display_position` — `LB`, `S`, `CB`, or comma-joined `DT,DE`, `DL,DE`, `DB,CB`. One
+two-way player is `WR,CB`, with a `linked_player` holding his defender identity under a second
+`player_key`. `uniform_number` is a string for players and the boolean `false` for team defenses.
+`primary_position` and `eligible_positions` exist or differ only in league context (D-59).
 
 **Revision, 2026-10-08 — `001_initial.sql` edited in place, not a `002`.** All tables were empty
 (row counts checked before the drop), so the database was dropped and recreated with the read-only

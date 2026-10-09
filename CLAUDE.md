@@ -223,10 +223,19 @@ Observed during the phase 3 spike, 2026-10-07 (D-33).
   a list; a drop's is an object, inside one transaction
 - **Some fields need a second fetch.** `draft_type` and `playoff_start_week` come
   from `/settings`, not the league resource
-- **Draft picks carry no player names**, so `players` must be populated before
-  `draft_picks` can be written
-- **`eligible_positions` includes slots like `W/R/T` and `IR`**, so it cannot
-  derive `players.position`
+- **Draft picks carry no player names** — but `/draftresults/players` nests
+  each pick's player, so one request gives both. Write `players` before
+  `draft_picks` (foreign key)
+- **A player's `eligible_positions` is league data**, not the player's: it adds
+  the league's slots (`W/R/T`, `Q/W/R/T`, `IR`, `D`), and differed by league for
+  47 of 50 players. `players` is one row per player across every league, so it
+  stores only league-independent fields — `display_position` feeds both
+  `position` and `nfl_positions` (migration 002). Slot eligibility belongs with
+  rosters
+- **Batched requests can truncate silently.** `/players;player_keys=` returns 25
+  players however many keys are asked for — status 200, a `count` that agrees
+  with its entries, no error. Any batched or filtered request asserts that the
+  keys returned equal the keys requested, not just that the response parsed
 - **Roster slots differ between leagues.** Fourteen use `QB RB WR TE W/R/T K DEF
   BN IR`; one adds `Q/W/R/T` and `D`, an individual-defensive-player slot, so
   that league's players will include positions no other league has

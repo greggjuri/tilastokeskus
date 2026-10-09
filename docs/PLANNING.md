@@ -169,8 +169,12 @@ INDEX: (league_key, week)
 PK: player_key            TEXT        '470.p.31002' — season-scoped
     player_id             INT         cross-season identity; any multi-season
                                       join uses this, not player_key (D-12)
-    full_name, position, nfl_team, bye_week
-    eligible_positions    TEXT[]      includes W/R/T and IR — cannot derive position
+    full_name, nfl_team, bye_week     league-independent only — one row
+                                      serves every league that drafted them
+    position              TEXT        display_position verbatim: 'LB', 'DT,DE'
+    nfl_positions         TEXT[]      display_position split: {DT,DE}. Real
+                                      positions, never roster slots. Renamed from
+                                      eligible_positions by migration 002
     updated_at            TIMESTAMPTZ
 ```
 
@@ -242,12 +246,13 @@ Read-only. No endpoints are exposed by this project.
 | Teams | `/league/{league_key}/teams` | carries the league metadata, `current_week` included (D-24a, D-57) |
 | Standings | `/league/{league_key}/standings` | |
 | Scoreboard | `/league/{league_key}/scoreboard;week={n}` | matchups |
-| Draft | `/league/{league_key}/draftresults` | one-shot per season |
+| Draft | `/league/{league_key}/draftresults/players` | picks with players nested; once per league, gated on stored picks (D-59) |
 | Transactions | `/league/{league_key}/transactions` | |
 | Roster | `/team/{team_key}/roster;week={n}` | week param is what makes backfill possible (D-17) |
 
 Not called: `/league/{league_key}` and `/game/nfl` — the first's metadata arrives
 with every teams payload, the second's game key with discovery (D-57).
+`/players;player_keys=` — it silently truncates to 25 players (D-59).
 
 ### Authentication
 OAuth 2.0, Confidential Client, redirect `https://localhost:8000`. Access tokens

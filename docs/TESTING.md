@@ -288,6 +288,8 @@ point totals.
 |-----|------------|------------|
 | Schema assumed JSON and fixed field positions | Designed from documentation, not observed payloads | Fixtures come from the raw archive; parse by name |
 | `461` recorded as the 2026 game key | A real key attached to the wrong season | Never hardcode a game key; read it from the league resource |
+| `/players;player_keys=` asked for 100, returned 25 — status 200, `count=25`, no error (2026-10) | The endpoint caps a batch at 25 and drops the rest silently. The response is internally consistent, so nothing that checks only the response can see it | **Any batched or filtered request asserts that the keys returned equal the keys requested.** Found by the PRP-02 probe before any collector used the path — the reason probes are required |
+| `eligible_positions` would have been last-writer-wins across fifteen leagues | A league-dependent field (it carries the league's roster slots) on a table with one row per player across leagues. It looked like a player attribute | Before storing a field on a cross-league table, compare it across contexts. Here: 47 of 50 differed; the column was renamed `nfl_positions` and sourced from a field identical in 50 of 50 |
 
 ### Collector (2026-10)
 
