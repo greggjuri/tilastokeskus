@@ -103,7 +103,7 @@ def test_dry_run_issues_one_request_and_writes_no_row(wired, capsys):
     out = capsys.readouterr().out
     assert client.calls == [("discover", 2026)]
     assert "requests issued: 1" in out
-    assert "planned requests: 30 (15 teams, 15 settings)" in out
+    assert "planned requests: 45 (15 teams, 15 settings, 15 drafts)" in out
     assert rows(db) == (0, 0, 0)
 
 
@@ -112,7 +112,7 @@ def test_dry_run_after_a_collection_plans_no_settings(wired, capsys):
     cli.main(["collect", "--league", DISCOVERED[0]])
     capsys.readouterr()
     cli.main(["collect", "--league", DISCOVERED[0], "--dry-run"])
-    assert "planned requests: 1 (1 teams, 0 settings)" in capsys.readouterr().out
+    assert "planned requests: 1 (1 teams, 0 settings, 0 drafts)" in capsys.readouterr().out
 
 
 def test_unbuilt_scope_exits_one_before_any_request(wired, capsys):

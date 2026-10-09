@@ -169,18 +169,21 @@ def dry_run(plan: CollectionPlan, client, settings) -> int:
     """One request — discovery, archived (D-20) — then the plan. No row and no run is written."""
     from .collect import require_buildable, select_leagues
     from .parse import parse_discovery
-    from .store import leagues_needing_settings
+    from .store import leagues_needing_draft, leagues_needing_settings
 
     require_buildable(plan)              # a dry run refuses exactly what a run would refuse
     discovery = parse_discovery(client.discover(plan.season), plan.season)
     keys = select_leagues(discovery.league_keys, plan.league_keys)
     with connect(settings) as conn:
         need = leagues_needing_settings(conn, keys)
+        drafts = leagues_needing_draft(conn, keys)
     print(f"would collect: {plan.describe()}, game key {discovery.game_key}")
     for key in keys:
-        print(f"  {key}{'  (+ settings)' if key in need else ''}")
-    print(f"planned requests: {len(keys) + len(need)} "
-          f"({len(keys)} teams, {len(need)} settings), plus the discovery already issued")
+        extra = [name for name, gated in (("settings", need), ("draft", drafts)) if key in gated]
+        print(f"  {key}{''.join(f'  (+ {name})' for name in extra)}")
+    print(f"planned requests: {len(keys) + len(need) + len(drafts)} "
+          f"({len(keys)} teams, {len(need)} settings, {len(drafts)} drafts), "
+          "plus the discovery already issued")
     return EXIT_OK
 
 
