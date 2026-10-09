@@ -3,7 +3,7 @@
 **Created**: 2026-10-08
 **Initial**: `initials/init-02-draft.md`
 **Phase**: Phase 4 — Collector
-**Status**: Ready
+**Status**: Complete (2026-10-09)
 
 > Filename: `prps/prp-02-draft.md` — number and slug inherited from the init spec.
 

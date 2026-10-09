@@ -7,7 +7,6 @@ the largest build in the project (the collectors) rather than after.
 
 ### In Progress
 
-- [ ] `init-02-draft.md` — executing `prps/prp-02-draft.md`
 - [ ] CE retrofit — `CLAUDE.md`, `docs/PLANNING.md`, `docs/TESTING.md`,
       `initials/template/`, `prps/template/` and `.claude/commands/` written;
       `docs/TASK.md` is this file. `examples/` still to come.
@@ -22,8 +21,6 @@ the largest build in the project (the collectors) rather than after.
 
 ### Up Next
 
-- [ ] `init-02-draft.md` - `players` and `draft_picks`, one request per league.
-      PRP ready (`prps/prp-02-draft.md`, 8.8)
 - [ ] `{rosters}` - init-03: `rosters`, with week semantics. Not yet claimed
 
 ---
@@ -42,13 +39,26 @@ record that something was tried and dropped.
 | nn | Slug | Init | PRP | Status |
 |----|------|------|-----|--------|
 | 01 | collector | [init](../initials/init-01-collector.md) | [PRP](../prps/prp-01-collector.md) | **Complete** 2026-10-08 |
-| 02 | draft | [init](../initials/init-02-draft.md) | [PRP](../prps/prp-02-draft.md) | PRP ready, 8.8 — open questions answered |
+| 02 | draft | [init](../initials/init-02-draft.md) | [PRP](../prps/prp-02-draft.md) | **Complete** 2026-10-09 |
 
 Phases 0–3 predate the CE workflow and have no specs.
 
 ---
 
 ## Recently Completed
+
+### PRP-02 — Players and draft picks (2026-10-09)
+- [x] One request per league: `/draftresults/players` nests each pick's player;
+      gated on stored picks; own transaction after the league's teams (D-59)
+- [x] Migration 002: `players.eligible_positions` → `nfl_positions`, sourced
+      from the league-independent `display_position`
+- [x] Live: one standard league twice (3 then 2 requests), the IDP league, then
+      all fifteen twice (29 then 16). 2,290 picks — 14 × 150 + 190 — every round
+      exactly 10, 219 distinct players, no orphan picks, no roster slot in
+      `nfl_positions`, IDP defenders stored. No retries, no throttling
+- [x] Owner confirmed the first collection against Yahoo, outside the AI tool
+      (D-49)
+- [x] Timer re-enabled; 374 tests, 91% coverage, ruff clean
 
 ### First scheduled collection (2026-10-09)
 - [x] The timer ran the collector at 00:12: success, 15/15 leagues, 165 rows,
@@ -261,9 +271,6 @@ $0/month. The budget is **request volume**, not money — see `docs/PLANNING.md`
 
 ### Known Issues
 
-- **The collect timer is disabled (2026-10-09, PRP-02 Step 0).** Once draft
-  collection lands, the next timer run would fetch all fifteen drafts in one
-  unescalated sweep (D-21a). Re-enable after PRP-02 Steps 9 and 10 pass
 - **Discord webhook URL leaked into a chat transcript** during the spike. Rotate
   it: delete in Discord, create a new one, update `.env`. Write-only to one
   channel, so the blast radius is spam, but rotate anyway
