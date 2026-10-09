@@ -124,3 +124,20 @@ def test_read_only_role_can_read_what_the_collector_writes(db):
     for table in ("leagues", "teams"):
         assert db.execute("SELECT has_table_privilege('tilasto_ro', %s, 'SELECT')",
                           (f"public.{table}",)).fetchone()[0]
+
+
+def test_migration_002_renames_eligible_positions_to_nfl_positions(db):
+    """PRP-02. The fixture applies every migration in order, so this is the schema tests see."""
+    columns = {r[0] for r in db.execute(
+        "SELECT column_name FROM information_schema.columns "
+        "WHERE table_schema = current_schema() AND table_name = 'players'")}
+    assert "nfl_positions" in columns
+    assert "eligible_positions" not in columns
+    comment = db.execute("SELECT col_description('players'::regclass, attnum) FROM pg_attribute "
+                         "WHERE attrelid = 'players'::regclass AND attname = 'nfl_positions'")
+    assert "League-independent" in comment.fetchone()[0]
+
+
+def test_migrations_apply_in_filename_order():
+    from tilastokeskus import migrate
+    assert [m.version for m in migrate.discover()][:2] == ["001_initial", "002_players_nfl_positions"]
